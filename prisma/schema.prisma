@@ -1,0 +1,18 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model GameSession {
+  id              String   @id @default(uuid())
+  teamAName       String   @default("The Explorers")
+  teamBName       String   @default("The Guardians")
+  teamAScore      Int      @default(0)
+  teamBScore      Int      @default(0)
+  winner          String?
+  completedAt     DateTime @default(now())
+}
