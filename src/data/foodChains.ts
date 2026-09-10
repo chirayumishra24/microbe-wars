@@ -15,6 +15,14 @@ export const CHAIN_ORGANISMS: OrganismItem[] = [
   { id: 'bacteria', name: 'Soil Bacteria', trophicLevel: 'Decomposer', icon: '🦠', energyRole: 'Breaks down dead matter & returns nutrients', imageColor: '#10B981' },
 ];
 
+export const AQUATIC_CHAIN_ORGANISMS: OrganismItem[] = [
+  { id: 'algae', name: 'Microscopic Algae', trophicLevel: 'Producer', icon: '🟢', energyRole: 'Photosynthesizes aquatic phytoplankton biomass', imageColor: '#10B981' },
+  { id: 'zooplankton', name: 'Water Flea (Daphnia)', trophicLevel: 'Primary Consumer', icon: '🦐', energyRole: 'Filter-feeds on microscopic algae', imageColor: '#F59E0B' },
+  { id: 'minnow', name: 'Minnow Fish', trophicLevel: 'Secondary Consumer', icon: '🐟', energyRole: 'Carnivore feeding on aquatic invertebrates', imageColor: '#06B6D4' },
+  { id: 'heron', name: 'Great Blue Heron', trophicLevel: 'Apex Predator', icon: '🦩', energyRole: 'Apex predator stalking fish along the water bank', imageColor: '#6366F1' },
+  { id: 'aquatic_bacteria', name: 'Water Bacteria', trophicLevel: 'Decomposer', icon: '🧫', energyRole: 'Recycles organic debris at the pond basin', imageColor: '#14B8A6' },
+];
+
 export interface WebNode {
   id: string;
   label: string;

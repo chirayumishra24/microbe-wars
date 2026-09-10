@@ -6,9 +6,10 @@ import { RAPID_FIRE_QUESTIONS, RapidFireQuestion } from '@/data/questions';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti, fireScorePop } from '@/utils/confetti';
 import { Zap, Timer, ArrowRight } from 'lucide-react';
+import { TurnPill } from '@/components/common/TurnPill';
 
 export const RapidFireQuiz: React.FC = () => {
-  const { addScore, markZoneComplete, setStage } = useGame();
+  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
 
   const [hasStarted, setHasStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
@@ -18,6 +19,8 @@ export const RapidFireQuiz: React.FC = () => {
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [lastFeedback, setLastFeedback] = useState<{ correct: boolean; text: string } | null>(null);
 
+  // Alternates turn: Question 0, 2, 4 = Team A; Question 1, 3, 5 = Team B
+  const currentTeam: 'teamA' | 'teamB' = questionIdx % 2 === 0 ? 'teamA' : 'teamB';
   const currentQ: RapidFireQuestion = RAPID_FIRE_QUESTIONS[questionIdx % RAPID_FIRE_QUESTIONS.length];
 
   // Timer countdown
@@ -58,9 +61,11 @@ export const RapidFireQuiz: React.FC = () => {
     if (isCorrect) {
       sounds.playCorrect();
       fireScorePop();
-      addScore(50);
+      addScore(50, currentTeam);
       setCorrectCount((prev) => prev + 1);
-      setLastFeedback({ correct: true, text: `✓ +50 PTS! ${currentQ.explanation}` });
+      const teamName = currentTeam === 'teamA' ? 'The Explorers' : 'The Guardians';
+      const cropText = currentTeam === 'teamA' ? 'Sunflowers Surge!' : 'Corn Crops Surge!';
+      setLastFeedback({ correct: true, text: `✓ +50 PTS for ${teamName}! ${cropText} ${currentQ.explanation}` });
     } else {
       sounds.playIncorrect();
       setLastFeedback({ correct: false, text: `✕ ${currentQ.explanation}` });
@@ -88,7 +93,8 @@ export const RapidFireQuiz: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <TurnPill currentTeam={currentTeam} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} />
             <div className="clay-pill flex items-center gap-1.5 px-4 py-2 bg-amber-100 border border-amber-300 text-amber-950 text-xs font-black">
               <Timer className="w-4 h-4 text-amber-600" />
               <span className="text-base font-mono text-amber-700">{timeLeft}s</span>
@@ -103,15 +109,15 @@ export const RapidFireQuiz: React.FC = () => {
             </div>
 
             <h3 className="text-3xl sm:text-4xl font-black text-slate-900 font-heading mb-3">
-              30-SECOND BLITZ!
+              30-SECOND DUAL-TEAM BLITZ!
             </h3>
 
             <p className="text-slate-600 text-sm sm:text-base font-semibold max-w-md mx-auto mb-6 leading-relaxed">
-              Questions appear one after another covering all ecosystem topics. Answer as many as you can before the clock expires!
+              Questions alternate 1-by-1 between The Explorers (Team A) and The Guardians (Team B). Rapidly coordinate and grow your team&apos;s crops!
             </p>
 
             <div className="clay-pill p-3 max-w-sm mx-auto mb-8 text-xs font-black text-amber-900 bg-amber-100 border border-amber-300">
-              ⚡ Reward: +50 Points for each correct answer & crop boost!
+              ⚡ Reward: +50 Points & Direct 3D Crop Growth per correct answer!
             </div>
 
             <button
@@ -124,6 +130,12 @@ export const RapidFireQuiz: React.FC = () => {
         ) : !isTimeUp ? (
           <div className="clay-card p-6 sm:p-8 rounded-3xl backdrop-blur-md relative">
             
+            {/* Active Turn Pill Banner */}
+            <div className="mb-4 flex items-center justify-between">
+              <TurnPill currentTeam={currentTeam} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} labelPrefix="ACTIVE TURN" />
+              <span className="text-xs font-black text-slate-600">Question #{questionIdx + 1}</span>
+            </div>
+
             {/* Top Timer Bar */}
             <div className="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden mb-6 p-0.5 border border-slate-300">
               <div

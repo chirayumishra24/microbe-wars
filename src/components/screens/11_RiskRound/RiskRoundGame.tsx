@@ -6,12 +6,16 @@ import { RISK_ROUND_QUESTIONS, RiskRoundQuestion } from '@/data/questions';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti, fireScorePop } from '@/utils/confetti';
 import { Coins, Flame, CheckCircle2, XCircle, ArrowRight, HelpCircle } from 'lucide-react';
+import { TurnPill } from '@/components/common/TurnPill';
 
 export const RiskRoundGame: React.FC = () => {
-  const { addScore, deductScore, markZoneComplete, setStage, activeTurnTeam } = useGame();
+  const { addScore, deductScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
 
   const [questionIdx, setQuestionIdx] = useState(0);
   const currentQ: RiskRoundQuestion = RISK_ROUND_QUESTIONS[questionIdx];
+
+  // Alternates turn: Question 0, 2, 4 = Team A; Question 1, 3, 5 = Team B
+  const currentTeam: 'teamA' | 'teamB' = questionIdx % 2 === 0 ? 'teamA' : 'teamB';
 
   const [selectedWager, setSelectedWager] = useState<number>(25); // 10, 25, 50
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
@@ -30,24 +34,26 @@ export const RiskRoundGame: React.FC = () => {
     setSelectedChoice(choiceIdx);
 
     const isCorrect = choiceIdx === currentQ.correctIndex;
+    const teamName = currentTeam === 'teamA' ? 'The Explorers' : 'The Guardians';
 
     if (isCorrect) {
       // WIN DOUBLE THE WAGER
       const reward = selectedWager * 2;
       sounds.playCorrect();
       fireScorePop();
-      addScore(reward);
+      addScore(reward, currentTeam);
+      const cropText = currentTeam === 'teamA' ? 'Sunflowers Surge!' : 'Corn Crops Surge!';
       setFeedback({
         win: true,
-        text: `✓ JACKPOT WIN! You wagered ${selectedWager} and WON DOUBLE (+${reward} PTS) for ${activeTurnTeam === 'teamA' ? 'The Explorers' : 'The Guardians'}! ${currentQ.explanation}`
+        text: `✓ JACKPOT WIN! ${teamName} wagered ${selectedWager} and WON DOUBLE (+${reward} PTS)! ${cropText} ${currentQ.explanation}`
       });
     } else {
       // LOSE THE WAGER
       sounds.playIncorrect();
-      deductScore(selectedWager);
+      deductScore(selectedWager, currentTeam);
       setFeedback({
         win: false,
-        text: `✕ BUST! You lost your wager (-${selectedWager} PTS). ${currentQ.explanation}`
+        text: `✕ BUST! ${teamName} lost their wager (-${selectedWager} PTS). ${currentQ.explanation}`
       });
     }
   };
@@ -85,8 +91,11 @@ export const RiskRoundGame: React.FC = () => {
             </h2>
           </div>
 
-          <div className="clay-pill text-xs font-black text-rose-800 bg-rose-100 border border-rose-300">
-            Round {questionIdx + 1} of {RISK_ROUND_QUESTIONS.length}
+          <div className="flex items-center gap-3">
+            <TurnPill currentTeam={currentTeam} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} />
+            <div className="clay-pill text-xs font-black text-rose-800 bg-rose-100 border border-rose-300">
+              Round {questionIdx + 1} of {RISK_ROUND_QUESTIONS.length}
+            </div>
           </div>
         </div>
 

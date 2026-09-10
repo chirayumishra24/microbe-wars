@@ -6,9 +6,10 @@ import { DECAY_TIMELINE, DECAY_INVESTIGATION_CLUES } from '@/data/decayStages';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti, fireScorePop } from '@/utils/confetti';
 import { ArrowRight, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { TurnPill } from '@/components/common/TurnPill';
 
 export const Zone3Container: React.FC = () => {
-  const { addScore, markZoneComplete, setStage } = useGame();
+  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
 
   const [currentDayIndex, setCurrentDayIndex] = useState(0); // 0 = Day 1, 1 = Day 3, 2 = Day 7, 3 = Day 14
   const currentStep = DECAY_TIMELINE[currentDayIndex];
@@ -16,16 +17,17 @@ export const Zone3Container: React.FC = () => {
   // Stage in investigation: 'timeline' | 'quiz1' | 'quiz2' | 'clues' | 'complete'
   const [investigationStage, setInvestigationStage] = useState<'timeline' | 'quiz1' | 'quiz2' | 'clues' | 'complete'>('timeline');
 
-  // Quiz 1: What is causing the decay?
+  // Quiz 1: What is causing the decay? (Team A's Challenge)
   const [q1Answer, setQ1Answer] = useState<number | null>(null);
   const [q1Feedback, setQ1Feedback] = useState<string | null>(null);
 
-  // Quiz 2: Which microorganisms are involved?
+  // Quiz 2: Which microorganisms are involved? (Team B's Challenge)
   const [q2Answer, setQ2Answer] = useState<number | null>(null);
   const [q2Feedback, setQ2Feedback] = useState<string | null>(null);
 
   // Clues revealed state
   const [revealedClues, setRevealedClues] = useState<number[]>([1]);
+  const [clueTurn, setClueTurn] = useState<'teamA' | 'teamB'>('teamA');
 
   const handleTimelineChange = (idx: number) => {
     sounds.playClick();
@@ -40,8 +42,11 @@ export const Zone3Container: React.FC = () => {
       // Microorganisms (Bacteria & Fungi)
       sounds.playCorrect();
       fireScorePop();
-      addScore(100);
-      setQ1Feedback('✓ CORRECT! (+100 PTS) Decomposition is actively driven by bacteria and fungi secreting digestive enzymes to break down organic compounds.');
+      addScore(100, 'teamA');
+      setQ1Feedback('✓ CORRECT! (+100 PTS for The Explorers! Sunflowers surge!) Decomposition is actively driven by bacteria and fungi secreting digestive enzymes.');
+      setTimeout(() => {
+        setInvestigationStage('quiz2');
+      }, 2200);
     } else {
       sounds.playIncorrect();
       setQ1Feedback('✕ Incorrect! While weather contributes moisture and heat, microscopic bacteria and fungi do the actual biochemical decomposition.');
@@ -56,8 +61,11 @@ export const Zone3Container: React.FC = () => {
       // Bacteria & Fungi
       sounds.playCorrect();
       fireScorePop();
-      addScore(100);
-      setQ2Feedback('✓ SPOT ON! (+100 PTS) Bacteria and fungal mold are the primary decomposers on land, unlocking trapped minerals and feeding the soil!');
+      addScore(100, 'teamB');
+      setQ2Feedback('✓ SPOT ON! (+100 PTS for The Guardians! Corn crops surge!) Bacteria and fungal mold are the primary decomposers on land, unlocking trapped minerals!');
+      setTimeout(() => {
+        setInvestigationStage('clues');
+      }, 2200);
     } else {
       sounds.playIncorrect();
       setQ2Feedback('✕ Not quite! Bacteria and Fungi are the true microscopic recyclers responsible for organic decay.');
@@ -68,13 +76,16 @@ export const Zone3Container: React.FC = () => {
     sounds.playClick();
     if (!revealedClues.includes(id)) {
       setRevealedClues([...revealedClues, id]);
+      addScore(50, clueTurn);
+      setClueTurn(clueTurn === 'teamA' ? 'teamB' : 'teamA');
     }
   };
 
   const handleFinishInvestigation = () => {
     sounds.playFanfare();
     fireCelebrationConfetti();
-    addScore(200);
+    addScore(100, 'teamA');
+    addScore(100, 'teamB');
     markZoneComplete('zone3');
     setInvestigationStage('complete');
   };
@@ -269,11 +280,19 @@ export const Zone3Container: React.FC = () => {
         {(investigationStage === 'quiz1' || investigationStage === 'quiz2') && (
           <div className="clay-card p-6 sm:p-8 rounded-3xl backdrop-blur-md">
             
-            <div className="flex items-center justify-between mb-4">
-              <span className="clay-pill text-xs font-black text-amber-800 bg-amber-100 border border-amber-300">
-                {investigationStage === 'quiz1' ? 'Question 1 of 2' : 'Question 2 of 2'}
-              </span>
-              <span className="clay-pill text-xs font-black text-amber-800 bg-amber-100">+100 Points</span>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <TurnPill
+                currentTeam={investigationStage === 'quiz1' ? 'teamA' : 'teamB'}
+                teamACount={teamACorrectCount}
+                teamBCount={teamBCorrectCount}
+                labelPrefix={investigationStage === 'quiz1' ? 'TEAM A CHALLENGE' : 'TEAM B CHALLENGE'}
+              />
+              <div className="flex items-center gap-2">
+                <span className="clay-pill text-xs font-black text-amber-800 bg-amber-100 border border-amber-300">
+                  {investigationStage === 'quiz1' ? 'Question 1 of 2' : 'Question 2 of 2'}
+                </span>
+                <span className="clay-pill text-xs font-black text-amber-800 bg-amber-100">+100 Points</span>
+              </div>
             </div>
 
             {investigationStage === 'quiz1' ? (
@@ -394,7 +413,10 @@ export const Zone3Container: React.FC = () => {
                   Review the forensic environmental evidence gathered during decomposition.
                 </p>
               </div>
-              <span className="clay-pill text-xs font-black text-amber-700 bg-amber-100">+200 Points Bonus</span>
+              <div className="flex items-center gap-3">
+                <TurnPill currentTeam={clueTurn} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} labelPrefix="INSPECT EVIDENCE" />
+                <span className="clay-pill text-xs font-black text-amber-700 bg-amber-100">+50 Pts/Clue</span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">

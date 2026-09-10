@@ -2,24 +2,37 @@
 
 import React, { useState } from 'react';
 import { useGame } from '@/context/GameContext';
-import { CHAIN_ORGANISMS, WEB_NODES, VALID_WEB_CONNECTIONS, OrganismItem, WebNode } from '@/data/foodChains';
+import { CHAIN_ORGANISMS, AQUATIC_CHAIN_ORGANISMS, WEB_NODES, VALID_WEB_CONNECTIONS, OrganismItem, WebNode } from '@/data/foodChains';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti, fireScorePop } from '@/utils/confetti';
 import { ArrowRight, RotateCcw, Zap } from 'lucide-react';
+import { TurnPill } from '@/components/common/TurnPill';
 
 export const Zone2Container: React.FC = () => {
-  const { addScore, markZoneComplete, setStage } = useGame();
+  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
 
   const [subGame, setSubGame] = useState<'chain' | 'web' | 'complete'>('chain');
 
-  // --- GAME A: BUILD THE FOOD CHAIN ---
-  const targetChainOrder = ['grass', 'caterpillar', 'bird', 'eagle'];
-  const [availableChainCards, setAvailableChainCards] = useState<OrganismItem[]>([
+  // --- GAME A: DUAL-TEAM TURN-BY-TURN FOOD CHAIN ---
+  const [chainTurn, setChainTurn] = useState<'teamA' | 'teamB'>('teamA');
+
+  const targetTerrestrialOrder = ['grass', 'caterpillar', 'bird', 'eagle'];
+  const targetAquaticOrder = ['algae', 'zooplankton', 'minnow', 'heron'];
+
+  const initialCardsA: OrganismItem[] = [
     CHAIN_ORGANISMS[2], // Bird
     CHAIN_ORGANISMS[0], // Grass
     CHAIN_ORGANISMS[3], // Eagle
     CHAIN_ORGANISMS[1], // Caterpillar
-  ]);
+  ];
+  const initialCardsB: OrganismItem[] = [
+    AQUATIC_CHAIN_ORGANISMS[2], // Minnow
+    AQUATIC_CHAIN_ORGANISMS[0], // Algae
+    AQUATIC_CHAIN_ORGANISMS[3], // Heron
+    AQUATIC_CHAIN_ORGANISMS[1], // Zooplankton
+  ];
+
+  const [availableChainCards, setAvailableChainCards] = useState<OrganismItem[]>(initialCardsA);
   const [placedChain, setPlacedChain] = useState<(OrganismItem | null)[]>([null, null, null, null]);
   const [chainEnergyActive, setChainEnergyActive] = useState(false);
   const [chainMessage, setChainMessage] = useState<string | null>(null);
@@ -57,21 +70,40 @@ export const Zone2Container: React.FC = () => {
     }
 
     const currentOrder = placedChain.map(item => item!.id);
-    const isCorrect = currentOrder.every((id, idx) => id === targetChainOrder[idx]);
+    const targetOrder = chainTurn === 'teamA' ? targetTerrestrialOrder : targetAquaticOrder;
+    const isCorrect = currentOrder.every((id, idx) => id === targetOrder[idx]);
 
     if (isCorrect) {
       sounds.playEnergyWhoosh();
       fireScorePop();
-      addScore(150);
+      addScore(150, chainTurn);
       setChainEnergyActive(true);
-      setChainMessage('✓ EXCELLENT! +150 POINTS! Energy flows from Producer (Grass) up to Apex Predator (Eagle)!');
+
+      const teamName = chainTurn === 'teamA' ? 'The Explorers' : 'The Guardians';
+      const cropText = chainTurn === 'teamA' ? 'Sunflowers Surge!' : 'Corn Crops Surge!';
+      setChainMessage(`✓ EXCELLENT! +150 POINTS for ${teamName}! ${cropText} Energy flows from Producer up to Apex Predator!`);
+
+      if (chainTurn === 'teamA') {
+        setTimeout(() => {
+          setChainTurn('teamB');
+          setAvailableChainCards(initialCardsB);
+          setPlacedChain([null, null, null, null]);
+          setChainEnergyActive(false);
+          setChainMessage(null);
+        }, 2400);
+      } else {
+        setTimeout(() => {
+          setSubGame('web');
+        }, 2400);
+      }
     } else {
       sounds.playIncorrect();
       setChainMessage('✕ Incorrect sequence! Energy flows from Producer ➔ Primary Consumer ➔ Secondary Consumer ➔ Apex Predator.');
     }
   };
 
-  // --- GAME B: BUILD THE FOOD WEB ---
+  // --- GAME B: BUILD THE FOOD WEB (ALTERNATING LINK TURNS) ---
+  const [webTurn, setWebTurn] = useState<'teamA' | 'teamB'>('teamA');
   const [selectedSourceNode, setSelectedSourceNode] = useState<WebNode | null>(null);
   const [establishedLinks, setEstablishedLinks] = useState<{ from: string; to: string }[]>([]);
   const [webFeedback, setWebFeedback] = useState<{ success?: boolean; text: string } | null>(null);
@@ -83,7 +115,8 @@ export const Zone2Container: React.FC = () => {
 
     if (!selectedSourceNode) {
       setSelectedSourceNode(node);
-      setWebFeedback({ text: `Selected "${node.label}". Now click who eats it or whom it eats!` });
+      const teamLabel = webTurn === 'teamA' ? 'The Explorers' : 'The Guardians';
+      setWebFeedback({ text: `[${teamLabel}] Selected "${node.label}". Now click who eats it or whom it eats!` });
       return;
     }
 
@@ -113,29 +146,34 @@ export const Zone2Container: React.FC = () => {
     if (validLink) {
       sounds.playEnergyWhoosh();
       fireScorePop();
-      addScore(40);
+      const currentTeam = webTurn;
+      addScore(40, currentTeam);
       const newLinks = [...establishedLinks, { from: validLink.from, to: validLink.to }];
       setEstablishedLinks(newLinks);
+      const teamName = currentTeam === 'teamA' ? 'The Explorers' : 'The Guardians';
       setWebFeedback({
         success: true,
-        text: `✓ Valid link established! ${validLink.label} (+40 PTS)`
+        text: `✓ Valid link established by ${teamName}! ${validLink.label} (+40 PTS & Crops Grow 🌱)`
       });
       setSelectedSourceNode(null);
+
+      // Alternate turn to opposing team
+      setWebTurn(prev => (prev === 'teamA' ? 'teamB' : 'teamA'));
 
       if (newLinks.length >= targetRequiredLinksCount) {
         sounds.playFanfare();
         fireCelebrationConfetti();
-        addScore(200);
+        addScore(100, currentTeam);
         markZoneComplete('zone2');
         setTimeout(() => {
           setSubGame('complete');
-        }, 1200);
+        }, 1500);
       }
     } else {
       sounds.playIncorrect();
       setWebFeedback({
         success: false,
-        text: `✕ Invalid connection! ${selectedSourceNode.label} and ${node.label} do not have a direct trophic relationship in this ecosystem.`
+        text: `✕ Invalid connection! ${selectedSourceNode.label} and ${node.label} do not have a direct trophic relationship.`
       });
       setSelectedSourceNode(null);
     }
@@ -187,18 +225,21 @@ export const Zone2Container: React.FC = () => {
         {/* ---------------------------------------------------- */}
         {subGame === 'chain' && (
           <div className="clay-card p-6 sm:p-8 rounded-3xl backdrop-blur-md">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-heading">
-                  GAME A: BUILD THE FOOD CHAIN
+                  GAME A: BUILD THE FOOD CHAIN ({chainTurn === 'teamA' ? 'Terrestrial' : 'Aquatic'})
                 </h3>
                 <p className="text-xs font-semibold text-slate-600 mt-0.5">
                   Arrange the organisms in order of energy flow: Producer ➔ Primary ➔ Secondary ➔ Apex Predator.
                 </p>
               </div>
-              <span className="clay-pill text-xs font-black text-amber-700 bg-amber-100">
-                +150 Points & Garden Growth
-              </span>
+              <div className="flex items-center gap-2">
+                <TurnPill currentTeam={chainTurn} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} />
+                <span className="clay-pill text-xs font-black text-amber-700 bg-amber-100">
+                  +150 Pts
+                </span>
+              </div>
             </div>
 
             {/* The 4 Food Chain Slots */}
@@ -330,18 +371,18 @@ export const Zone2Container: React.FC = () => {
         {subGame === 'web' && (
           <div className="clay-card p-6 sm:p-8 rounded-3xl backdrop-blur-md">
             
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-heading">
-                  GAME B: BUILD THE FOOD WEB
+                  GAME B: BUILD THE FOOD WEB (Alternating Turns)
                 </h3>
                 <p className="text-xs font-semibold text-slate-600 mt-0.5">
                   Click two organisms that have an ecological connection to link them! Connect at least {targetRequiredLinksCount} valid relationships.
                 </p>
               </div>
-              <div className="text-right">
-                <span className="clay-pill text-xs font-black text-amber-700 bg-amber-100 block mb-1">+200 Points Bonus</span>
-                <span className="text-xs text-emerald-800 font-black">
+              <div className="flex flex-wrap items-center gap-2">
+                <TurnPill currentTeam={webTurn} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} />
+                <span className="text-xs text-emerald-800 font-black bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                   Links: {establishedLinks.length} / {targetRequiredLinksCount}
                 </span>
               </div>

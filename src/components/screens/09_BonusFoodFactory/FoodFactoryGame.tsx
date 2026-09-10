@@ -6,12 +6,16 @@ import { FOOD_FACTORY_ITEMS } from '@/data/foodFactory';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti, fireScorePop } from '@/utils/confetti';
 import { ArrowRight, Check, ChefHat } from 'lucide-react';
+import { TurnPill } from '@/components/common/TurnPill';
 
 export const FoodFactoryGame: React.FC = () => {
-  const { addScore, markZoneComplete, setStage } = useGame();
+  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
 
   const [itemIdx, setItemIdx] = useState(0);
   const currentFood = FOOD_FACTORY_ITEMS[itemIdx];
+
+  // Alternates turn: Recipe 0 & 2: Team A, Recipe 1 & 3: Team B
+  const currentTeam: 'teamA' | 'teamB' = itemIdx % 2 === 0 ? 'teamA' : 'teamB';
 
   const [selectedMicrobe, setSelectedMicrobe] = useState<string | null>(null);
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
@@ -43,16 +47,24 @@ export const FoodFactoryGame: React.FC = () => {
       setTimeout(() => sounds.playCorrect(), 600);
 
       fireScorePop();
-      addScore(100);
+      addScore(100, currentTeam);
+
+      const teamName = currentTeam === 'teamA' ? 'The Explorers' : 'The Guardians';
+      const cropText = currentTeam === 'teamA' ? 'Sunflowers Surge!' : 'Corn Crops Surge!';
 
       setFeedback({
         success: true,
-        text: `✓ DELICIOUS SUCCESS! +100 PTS! ${currentFood.explanation}`
+        text: `✓ DELICIOUS SUCCESS! +100 PTS for ${teamName}! ${cropText} ${currentFood.explanation}`
       });
 
       setTimeout(() => {
         setFermentingAnimation(false);
       }, 1500);
+
+      // Auto-advance after 2.4s
+      setTimeout(() => {
+        handleNextItem();
+      }, 2400);
     } else {
       sounds.playIncorrect();
       setFeedback({
@@ -95,8 +107,11 @@ export const FoodFactoryGame: React.FC = () => {
             </h2>
           </div>
 
-          <div className="clay-pill text-xs font-black text-amber-800 bg-amber-100 border border-amber-300">
-            Case {itemIdx + 1} of {FOOD_FACTORY_ITEMS.length}
+          <div className="flex items-center gap-3">
+            <TurnPill currentTeam={currentTeam} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} />
+            <div className="clay-pill text-xs font-black text-amber-800 bg-amber-100 border border-amber-300">
+              Recipe {itemIdx + 1} of {FOOD_FACTORY_ITEMS.length}
+            </div>
           </div>
         </div>
 

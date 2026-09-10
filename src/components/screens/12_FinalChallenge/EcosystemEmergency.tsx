@@ -6,14 +6,19 @@ import { FINAL_EMERGENCY_STEPS, FinalEmergencyStep } from '@/data/questions';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti, fireScorePop } from '@/utils/confetti';
 import { AlertOctagon, CheckCircle2, XCircle, ArrowRight, Trees } from 'lucide-react';
+import { TurnPill } from '@/components/common/TurnPill';
 
 export const EcosystemEmergency: React.FC = () => {
-  const { addScore, markZoneComplete, setStage } = useGame();
+  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
 
   const [stepIdx, setStepIdx] = useState(0);
   const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [stepFeedback, setStepFeedback] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // Turn alternates per emergency stage
+  const currentTeam: 'teamA' | 'teamB' = stepIdx % 2 === 0 ? 'teamA' : 'teamB';
+  const teamName = currentTeam === 'teamA' ? 'The Explorers' : 'The Guardians';
 
   const currentStep: FinalEmergencyStep = FINAL_EMERGENCY_STEPS[stepIdx];
   const totalSteps = FINAL_EMERGENCY_STEPS.length;
@@ -28,8 +33,9 @@ export const EcosystemEmergency: React.FC = () => {
     if (isCorrect) {
       sounds.playEnergyWhoosh();
       fireScorePop();
-      addScore(100); // 100 pts per stage = 500 total!
-      setStepFeedback(`✓ HEALING INITIATED! (+100 PTS) ${currentStep.restorationEffect}`);
+      addScore(100, currentTeam); // 100 pts per stage + crops grow for current team!
+      const cropText = currentTeam === 'teamA' ? 'Sunflowers Surge!' : 'Corn Crops Surge!';
+      setStepFeedback(`✓ HEALING INITIATED! (+100 PTS to ${teamName} • ${cropText}) ${currentStep.restorationEffect}`);
     } else {
       sounds.playIncorrect();
       setStepFeedback(`✕ Not the optimal restoration response! Please analyze how microorganisms support this specific layer.`);
@@ -45,7 +51,8 @@ export const EcosystemEmergency: React.FC = () => {
     } else {
       sounds.playFanfare();
       fireCelebrationConfetti();
-      addScore(500); // Grand finale bonus!
+      addScore(250, 'teamA');
+      addScore(250, 'teamB'); // Grand finale bonus shared!
       markZoneComplete('finalChallenge');
       setIsCompleted(true);
     }
@@ -67,7 +74,8 @@ export const EcosystemEmergency: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <TurnPill currentTeam={currentTeam} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} />
             <span className="clay-pill text-xs font-black text-amber-800 bg-amber-100 border border-amber-300">
               Phase {stepIdx + 1} of {totalSteps}
             </span>

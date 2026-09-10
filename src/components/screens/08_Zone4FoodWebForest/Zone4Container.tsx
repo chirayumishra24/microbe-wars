@@ -5,11 +5,13 @@ import { useGame } from '@/context/GameContext';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti } from '@/utils/confetti';
 import { ArrowRight, AlertTriangle, CheckSquare, Square } from 'lucide-react';
+import { TurnPill } from '@/components/common/TurnPill';
 
 export const Zone4Container: React.FC = () => {
-  const { addScore, markZoneComplete, setStage } = useGame();
+  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
 
   const [screenStage, setScreenStage] = useState<'cycle' | 'scenario' | 'complete'>('cycle');
+  const [cycleTurn, setCycleTurn] = useState<'teamA' | 'teamB'>('teamA');
 
   // Interactive Nutrient Cycle Highlighted Node
   const [activeCycleStep, setActiveCycleStep] = useState<number>(0);
@@ -41,7 +43,15 @@ export const Zone4Container: React.FC = () => {
       setSelectedConsequences(selectedConsequences.filter(c => c !== id));
     } else {
       setSelectedConsequences([...selectedConsequences, id]);
+      setCycleTurn(prev => (prev === 'teamA' ? 'teamB' : 'teamA'));
     }
+  };
+
+  const handleSelectCycleNode = (idx: number) => {
+    sounds.playClick();
+    setActiveCycleStep(idx);
+    addScore(20, cycleTurn);
+    setCycleTurn(prev => (prev === 'teamA' ? 'teamB' : 'teamA'));
   };
 
   const handleVerifyScenario = () => {
@@ -52,15 +62,16 @@ export const Zone4Container: React.FC = () => {
     if (selectedCorrect.length === correctIds.length && selectedIncorrect.length === 0) {
       sounds.playFanfare();
       fireCelebrationConfetti();
-      addScore(200);
+      addScore(100, 'teamA');
+      addScore(100, 'teamB');
       markZoneComplete('zone4');
       setScenarioFeedback({
         success: true,
-        text: '✓ OUTSTANDING ECOLOGICAL DEDUCTION! (+200 PTS) Decomposers are the foundational linchpins that keep planetary nutrient cycling active. Without them, the entire living biosphere would stall!'
+        text: '✓ OUTSTANDING ECOLOGICAL DEDUCTION! (+100 PTS to both teams! Crops thrive!) Decomposers are the foundational linchpins of planetary nutrient cycling!'
       });
       setTimeout(() => {
         setScreenStage('complete');
-      }, 1500);
+      }, 1800);
     } else {
       sounds.playIncorrect();
       setScenarioFeedback({
@@ -87,27 +98,30 @@ export const Zone4Container: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-bold">
-            <button
-              onClick={() => setScreenStage('cycle')}
-              className={`px-4 py-2 rounded-2xl font-black transition-all ${
-                screenStage === 'cycle'
-                  ? 'clay-btn-emerald text-white'
-                  : 'clay-btn-white text-slate-700'
-              }`}
-            >
-              1. Closed Nutrient Cycle
-            </button>
-            <button
-              onClick={() => setScreenStage('scenario')}
-              className={`px-4 py-2 rounded-2xl font-black transition-all ${
-                screenStage === 'scenario'
-                  ? 'clay-btn-emerald text-white'
-                  : 'clay-btn-white text-slate-700'
-              }`}
-            >
-              2. Extinction Scenario
-            </button>
+          <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
+            <TurnPill currentTeam={cycleTurn} teamACount={teamACorrectCount} teamBCount={teamBCorrectCount} />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setScreenStage('cycle')}
+                className={`px-4 py-2 rounded-2xl font-black transition-all ${
+                  screenStage === 'cycle'
+                    ? 'clay-btn-emerald text-white'
+                    : 'clay-btn-white text-slate-700'
+                }`}
+              >
+                1. Closed Nutrient Cycle
+              </button>
+              <button
+                onClick={() => setScreenStage('scenario')}
+                className={`px-4 py-2 rounded-2xl font-black transition-all ${
+                  screenStage === 'scenario'
+                    ? 'clay-btn-emerald text-white'
+                    : 'clay-btn-white text-slate-700'
+                }`}
+              >
+                2. Extinction Scenario
+              </button>
+            </div>
           </div>
         </div>
 
@@ -126,7 +140,7 @@ export const Zone4Container: React.FC = () => {
                 </p>
               </div>
               <span className="clay-pill text-xs font-black text-teal-800 bg-teal-100 border border-teal-300">
-                Nutrient Dynamics
+                +20 Pts Per Node
               </span>
             </div>
 
@@ -135,10 +149,7 @@ export const Zone4Container: React.FC = () => {
               {cycleNodes.map((node, idx) => (
                 <button
                   key={idx}
-                  onClick={() => {
-                    sounds.playClick();
-                    setActiveCycleStep(idx);
-                  }}
+                  onClick={() => handleSelectCycleNode(idx)}
                   className={`clay-card p-4 rounded-2xl transition-all flex flex-col items-center text-center ${
                     activeCycleStep === idx
                       ? 'border-2 border-teal-500 ring-4 ring-teal-300 scale-105 bg-teal-50/90'
