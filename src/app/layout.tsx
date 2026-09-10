@@ -7,6 +7,19 @@ import { GardenBackground3D } from "@/components/3d/GardenBackground3D";
 export const metadata: Metadata = {
   title: "MICROBE WARS — Small Organisms. Big Impact.",
   description: "A two-team competitive learning adventure for studying microorganisms in the environment, food chains and webs, and decomposition with 3D garden crop growth.",
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
+  appleWebApp: {
+    title: 'Microbe Wars',
+  },
 };
 
 export default function RootLayout({
