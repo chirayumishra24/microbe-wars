@@ -3,6 +3,7 @@ import "./globals.css";
 import { GameProvider } from "@/context/GameContext";
 import { TopScoreboard } from "@/components/common/TopScoreboard";
 import { GardenBackground3D } from "@/components/3d/GardenBackground3D";
+import { TurnClashOverlay } from "@/components/common/TurnClashOverlay";
 
 export const metadata: Metadata = {
   title: "MICROBE WARS — Small Organisms. Big Impact.",
@@ -39,6 +40,8 @@ export default function RootLayout({
           <main className="w-full relative z-10">
             {children}
           </main>
+          {/* Turn Clash Announcement Overlay */}
+          <TurnClashOverlay />
         </GameProvider>
       </body>
     </html>

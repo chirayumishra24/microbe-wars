@@ -3,6 +3,7 @@
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import { StartScreen } from '@/components/screens/01_StartScreen';
+import { TeamSelectionScreen } from '@/components/screens/02_TeamSelection';
 import { HowToPlayScreen } from '@/components/screens/03_HowToPlay';
 import { GameMapScreen } from '@/components/screens/04_GameMap';
 import { Zone1Container } from '@/components/screens/05_Zone1Lab/Zone1Container';
@@ -22,6 +23,8 @@ export default function Home() {
   switch (stage) {
     case 'start':
       return <StartScreen />;
+    case 'team-selection':
+      return <TeamSelectionScreen />;
     case 'how-to-play':
       return <HowToPlayScreen />;
     case 'map':

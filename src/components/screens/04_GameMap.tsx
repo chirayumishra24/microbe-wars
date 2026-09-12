@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useGame, GameStage } from '@/context/GameContext';
-import { CheckCircle2, Lock, Play, Sparkles, ChevronRight } from 'lucide-react';
+import { CheckCircle2, Lock, Play, Sparkles, ChevronRight, Trophy } from 'lucide-react';
 import { sounds } from '@/utils/audio';
 import { GardenStatusWidget } from '@/components/common/GardenStatusWidget';
+import { HallOfFameModal } from '@/components/common/HallOfFameModal';
 
 interface MapZone {
   id: string;
@@ -20,6 +21,7 @@ interface MapZone {
 
 export const GameMapScreen: React.FC = () => {
   const { setStage, completedZones } = useGame();
+  const [showHallOfFame, setShowHallOfFame] = useState(false);
 
   const zones: MapZone[] = [
     {
@@ -136,9 +138,19 @@ export const GameMapScreen: React.FC = () => {
           <h2 className="text-4xl sm:text-5xl font-black text-slate-900 font-heading">
             ECOSYSTEM ADVENTURE MAP
           </h2>
-          <p className="text-slate-700 font-bold text-xs sm:text-sm mt-1 max-w-lg mx-auto">
+          <p className="text-slate-700 font-bold text-xs sm:text-sm mt-1 max-w-lg mx-auto mb-3">
             Travel sequentially through 4 core learning zones, bonus rounds, and the final ecosystem climax!
           </p>
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setShowHallOfFame(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full clay-pill bg-amber-50 text-amber-900 border border-amber-300 text-xs font-black hover:bg-amber-100 transition-all shadow-xs"
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-600" />
+            <span>Classroom Hall of Fame</span>
+          </button>
         </div>
 
         {/* Live 3D Garden Status Widget */}
@@ -252,6 +264,9 @@ export const GameMapScreen: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Classroom Hall of Fame Modal */}
+      <HallOfFameModal isOpen={showHallOfFame} onClose={() => setShowHallOfFame(false)} />
     </div>
   );
 };

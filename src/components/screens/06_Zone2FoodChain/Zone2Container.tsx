@@ -7,9 +7,11 @@ import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti, fireScorePop } from '@/utils/confetti';
 import { ArrowRight, RotateCcw, Zap } from 'lucide-react';
 import { TurnPill } from '@/components/common/TurnPill';
+import { FloatingScore } from '@/components/common/FloatingScore';
 
 export const Zone2Container: React.FC = () => {
-  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount } = useGame();
+  const { addScore, markZoneComplete, setStage, teamACorrectCount, teamBCorrectCount, teamAName, teamBName } = useGame();
+  const [floatingPoints, setFloatingPoints] = useState<number | null>(null);
 
   const [subGame, setSubGame] = useState<'chain' | 'web' | 'complete'>('chain');
 
@@ -77,9 +79,10 @@ export const Zone2Container: React.FC = () => {
       sounds.playEnergyWhoosh();
       fireScorePop();
       addScore(150, chainTurn);
+      setFloatingPoints(150);
       setChainEnergyActive(true);
 
-      const teamName = chainTurn === 'teamA' ? 'The Explorers' : 'The Guardians';
+      const teamName = chainTurn === 'teamA' ? teamAName : teamBName;
       const cropText = chainTurn === 'teamA' ? 'Sunflowers Surge!' : 'Corn Crops Surge!';
       setChainMessage(`✓ EXCELLENT! +150 POINTS for ${teamName}! ${cropText} Energy flows from Producer up to Apex Predator!`);
 
@@ -148,9 +151,10 @@ export const Zone2Container: React.FC = () => {
       fireScorePop();
       const currentTeam = webTurn;
       addScore(40, currentTeam);
+      setFloatingPoints(40);
       const newLinks = [...establishedLinks, { from: validLink.from, to: validLink.to }];
       setEstablishedLinks(newLinks);
-      const teamName = currentTeam === 'teamA' ? 'The Explorers' : 'The Guardians';
+      const teamName = currentTeam === 'teamA' ? teamAName : teamBName;
       setWebFeedback({
         success: true,
         text: `✓ Valid link established by ${teamName}! ${validLink.label} (+40 PTS & Crops Grow 🌱)`
@@ -224,7 +228,10 @@ export const Zone2Container: React.FC = () => {
         {/* GAME A: BUILD THE FOOD CHAIN */}
         {/* ---------------------------------------------------- */}
         {subGame === 'chain' && (
-          <div className="clay-card p-6 sm:p-8 rounded-3xl backdrop-blur-md">
+          <div className="clay-card p-6 sm:p-8 rounded-3xl backdrop-blur-md relative">
+            {floatingPoints && (
+              <FloatingScore points={floatingPoints} onComplete={() => setFloatingPoints(null)} />
+            )}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-heading">

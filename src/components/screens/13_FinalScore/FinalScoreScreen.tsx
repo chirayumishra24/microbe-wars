@@ -5,13 +5,15 @@ import { useGame } from '@/context/GameContext';
 import { MicrobeMascot } from '@/components/common/MicrobeMascot';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti } from '@/utils/confetti';
-import { Sparkles, ArrowRight, RefreshCw, BookOpen } from 'lucide-react';
+import { Sparkles, ArrowRight, RefreshCw, BookOpen, Trophy } from 'lucide-react';
+import { HallOfFameModal } from '@/components/common/HallOfFameModal';
 
 export const FinalScoreScreen: React.FC = () => {
-  const { teamAScore, teamBScore, setStage, resetGame } = useGame();
+  const { teamAScore, teamBScore, teamAName, teamBName, setStage, resetGame } = useGame();
 
   const [displayedScoreA, setDisplayedScoreA] = useState(0);
   const [displayedScoreB, setDisplayedScoreB] = useState(0);
+  const [showHallOfFame, setShowHallOfFame] = useState(false);
 
   // Determine winner
   const isTeamAWinner = teamAScore > teamBScore;
@@ -24,6 +26,20 @@ export const FinalScoreScreen: React.FC = () => {
     const timer = setInterval(() => {
       fireCelebrationConfetti();
     }, 2500);
+
+    // Save match results to Prisma SQLite dev.db
+    const winnerName = isTie ? 'Tie' : isTeamAWinner ? teamAName : teamBName;
+    fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        teamAName,
+        teamBName,
+        teamAScore,
+        teamBScore,
+        winner: winnerName,
+      }),
+    }).catch((err) => console.error('Error saving session:', err));
 
     // Score Counter Animation
     const duration = 1500;
@@ -48,7 +64,7 @@ export const FinalScoreScreen: React.FC = () => {
       clearInterval(timer);
       clearInterval(counter);
     };
-  }, [teamAScore, teamBScore]);
+  }, [teamAScore, teamBScore, isTie, isTeamAWinner, teamAName, teamBName]);
 
   return (
     <div className="min-h-[calc(100vh-65px)] p-4 sm:p-6 flex flex-col items-center justify-center bio-particles">
@@ -68,12 +84,12 @@ export const FinalScoreScreen: React.FC = () => {
         <h2 className="text-4xl sm:text-6xl md:text-7xl font-black text-slate-900 font-heading tracking-tight mb-2">
           {isTeamAWinner && (
             <span className="text-blue-600">
-              TEAM A WINS!
+              {teamAName.toUpperCase()} WINS!
             </span>
           )}
           {isTeamBWinner && (
             <span className="text-orange-600">
-              TEAM B WINS!
+              {teamBName.toUpperCase()} WINS!
             </span>
           )}
           {isTie && (
@@ -87,8 +103,8 @@ export const FinalScoreScreen: React.FC = () => {
           {isTie
             ? 'A spectacular dead-heat tie! Both teams demonstrated peerless scientific knowledge!'
             : isTeamAWinner
-            ? 'The Explorers proved their mastery of microscopic life and ecological food webs!'
-            : 'The Guardians safeguarded the biosphere with unmatched ecological deductions!'}
+            ? `${teamAName} proved their mastery of microscopic life and ecological food webs!`
+            : `${teamBName} safeguarded the biosphere with unmatched ecological deductions!`}
         </p>
 
         {/* Dual Score Cards Face-Off */}
@@ -105,7 +121,7 @@ export const FinalScoreScreen: React.FC = () => {
             </div>
 
             <span className="text-xs font-black text-blue-700 uppercase tracking-widest">
-              TEAM A • THE EXPLORERS
+              TEAM A • {teamAName}
             </span>
 
             <div className="text-5xl sm:text-6xl font-black text-slate-900 font-mono my-2">
@@ -134,7 +150,7 @@ export const FinalScoreScreen: React.FC = () => {
             </div>
 
             <span className="text-xs font-black text-orange-700 uppercase tracking-widest">
-              TEAM B • THE GUARDIANS
+              TEAM B • {teamBName}
             </span>
 
             <div className="text-5xl sm:text-6xl font-black text-slate-900 font-mono my-2">
@@ -155,7 +171,7 @@ export const FinalScoreScreen: React.FC = () => {
         </div>
 
         {/* Next Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4">
           <button
             onClick={() => setStage('summary')}
             className="w-full sm:w-auto clay-btn-emerald px-10 py-4 rounded-3xl text-white font-black text-base sm:text-lg flex items-center justify-center gap-2 font-heading"
@@ -163,6 +179,17 @@ export const FinalScoreScreen: React.FC = () => {
             <BookOpen className="w-5 h-5" />
             <span>SEE WHAT WE LEARNED</span>
             <ArrowRight className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setShowHallOfFame(true);
+            }}
+            className="w-full sm:w-auto clay-btn-white px-6 py-4 rounded-3xl text-amber-800 font-black text-base transition-all flex items-center justify-center gap-2 border-2 border-amber-300 bg-amber-50/80 hover:bg-amber-100"
+          >
+            <Trophy className="w-5 h-5 text-amber-600" />
+            <span>Hall of Fame</span>
           </button>
 
           <button
@@ -179,6 +206,9 @@ export const FinalScoreScreen: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Classroom Hall of Fame Modal */}
+      <HallOfFameModal isOpen={showHallOfFame} onClose={() => setShowHallOfFame(false)} />
     </div>
   );
 };

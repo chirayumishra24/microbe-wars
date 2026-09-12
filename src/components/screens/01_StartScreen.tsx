@@ -12,7 +12,7 @@ export const StartScreen: React.FC = () => {
   const handleStart = () => {
     sounds.playCorrect();
     sounds.startBgm();
-    setStage('how-to-play');
+    setStage('team-selection');
   };
 
   return (

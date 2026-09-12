@@ -2,167 +2,280 @@
 
 import React, { useState } from 'react';
 import { useGame } from '@/context/GameContext';
-import { MicrobeMascot } from '@/components/common/MicrobeMascot';
-import { Compass, Shield, CheckCircle2, ArrowRight } from 'lucide-react';
+import { MicrobeScene } from '@/components/3d/MicrobeScene';
+import { Compass, Shield, CheckCircle2, ArrowRight, Sparkles, Wand2 } from 'lucide-react';
 import { sounds } from '@/utils/audio';
 import { fireScorePop } from '@/utils/confetti';
 
-export const TeamSelectionScreen: React.FC = () => {
-  const { setStage, selectedTeam, setSelectedTeam, setActiveTurnTeam } = useGame();
-  const [confirmedTeam, setConfirmedTeam] = useState<'teamA' | 'teamB' | null>(null);
+const PRESET_NAMES_A = [
+  'The Explorers',
+  'Sprout Squad',
+  'Bio-Hawks',
+  'Nano Force',
+  'Bacillus Bosses',
+];
 
-  const handleSelectTeam = (team: 'teamA' | 'teamB') => {
-    sounds.playCorrect();
-    setSelectedTeam(team);
-    setActiveTurnTeam(team);
-    setConfirmedTeam(team);
+const PRESET_NAMES_B = [
+  'The Guardians',
+  'Eco-Titans',
+  'Amoeba Army',
+  'Cell Protectors',
+  'Green Giants',
+];
+
+const MASCOT_OPTIONS: { id: 'bacteria' | 'amoeba' | 'fungi' | 'algae' | 'virus'; label: string; icon: string }[] = [
+  { id: 'bacteria', label: 'Bacillus', icon: '🔬' },
+  { id: 'amoeba', label: 'Amoeba', icon: '🦠' },
+  { id: 'fungi', label: 'Yeast', icon: '🥣' },
+  { id: 'algae', label: 'Micro-Alga', icon: '🌱' },
+  { id: 'virus', label: 'Phage', icon: '⚡' },
+];
+
+export const TeamSelectionScreen: React.FC = () => {
+  const {
+    setStage,
+    teamAName,
+    setTeamAName,
+    teamBName,
+    setTeamBName,
+    teamAMascot,
+    setTeamAMascot,
+    teamBMascot,
+    setTeamBMascot,
+  } = useGame();
+
+  const [activeEditing, setActiveEditing] = useState<'teamA' | 'teamB'>('teamA');
+
+  const handleSelectPreset = (team: 'teamA' | 'teamB', name: string) => {
+    sounds.playClick();
+    if (team === 'teamA') {
+      setTeamAName(name);
+    } else {
+      setTeamBName(name);
+    }
     fireScorePop();
   };
 
+  const handleSelectMascot = (team: 'teamA' | 'teamB', mascotId: string) => {
+    sounds.playCorrect();
+    if (team === 'teamA') {
+      setTeamAMascot(mascotId);
+    } else {
+      setTeamBMascot(mascotId);
+    }
+  };
+
   const handleContinue = () => {
-    sounds.playClick();
+    sounds.playCorrect();
     setStage('how-to-play');
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-65px)] flex flex-col items-center justify-center p-4 sm:p-6 overflow-hidden bio-particles">
-      <div className="max-w-4xl w-full flex flex-col items-center text-center z-10">
+    <div className="relative min-h-[calc(100vh-65px)] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <div className="max-w-5xl w-full flex flex-col items-center text-center z-10 my-auto">
         
-        {/* Title */}
-        <div className="mb-8">
-          <span className="text-xs font-bold tracking-widest text-emerald-400 uppercase bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-500/30">
-            Step 2: Dual Rivalry
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-3 font-heading">
-            CHOOSE YOUR TEAM
+        {/* Header */}
+        <div className="mb-4 sm:mb-6">
+          <div className="clay-pill inline-flex items-center gap-2 px-4 py-1 text-emerald-900 text-xs font-black mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            Classroom Tournament Setup
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 font-heading tracking-tight">
+            CUSTOMIZE YOUR TEAMS
           </h2>
-          <p className="text-slate-300 text-sm sm:text-base mt-2 max-w-md mx-auto">
-            Pick your team identity to represent in the ecosystem competition!
+          <p className="text-slate-700 font-bold text-xs sm:text-sm mt-1 max-w-lg mx-auto">
+            Tap a quick smart board preset name or choose your 3D microbe mascot!
           </p>
         </div>
 
-        {/* Dual Team Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mb-8">
+        {/* Dual Team Customizer Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full max-w-4xl mb-6">
           
-          {/* Team A: The Explorers */}
+          {/* Team A Customizer */}
           <div
-            onClick={() => handleSelectTeam('teamA')}
-            className={`cursor-pointer rounded-3xl p-6 sm:p-8 border-2 transition-all flex flex-col items-center relative group ${
-              selectedTeam === 'teamA'
-                ? 'bg-blue-950/80 border-blue-400 shadow-2xl shadow-blue-500/40 scale-102 ring-4 ring-blue-500/30'
-                : 'bg-slate-900/60 border-slate-800 hover:border-blue-500/50 hover:bg-slate-800/60'
+            onClick={() => setActiveEditing('teamA')}
+            className={`clay-card-blue p-5 sm:p-6 flex flex-col items-center relative transition-all ${
+              activeEditing === 'teamA' ? 'ring-4 ring-blue-400 scale-102 shadow-xl' : 'opacity-95'
             }`}
           >
-            {selectedTeam === 'teamA' && (
-              <div className="absolute top-4 right-4 bg-blue-500 text-white p-1 rounded-full">
-                <CheckCircle2 className="w-5 h-5" />
+            <div className="w-full flex items-center justify-between mb-3">
+              <span className="clay-pill px-3 py-1 text-xs font-black text-blue-900 uppercase flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5 text-blue-600" />
+                Team A Identity
+              </span>
+              <span className="text-[11px] font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
+                🌻 Sunflowers
+              </span>
+            </div>
+
+            {/* Live 3D Specimen Avatar */}
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-slate-950 border-4 border-white shadow-xl mb-3 relative ring-4 ring-blue-300 flex-shrink-0">
+              <MicrobeScene
+                type={teamAMascot as any}
+                color="#34D399"
+                className="w-full h-full"
+              />
+            </div>
+
+            {/* Team Name Input with Presets */}
+            <div className="w-full mb-3">
+              <label className="block text-[11px] font-black text-blue-950 uppercase tracking-wider mb-1 text-left">
+                Team A Name:
+              </label>
+              <input
+                type="text"
+                value={teamAName}
+                onChange={(e) => setTeamAName(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-white border-2 border-blue-300 text-slate-900 font-extrabold text-base focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner"
+                placeholder="Enter team name..."
+              />
+            </div>
+
+            {/* Smart Board 1-Tap Preset Name Chips */}
+            <div className="w-full mb-4 text-left">
+              <span className="text-[10px] font-black text-blue-800 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                <Wand2 className="w-3 h-3" /> Quick Presets (1-Tap):
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_NAMES_A.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => handleSelectPreset('teamA', preset)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all ${
+                      teamAName === preset
+                        ? 'bg-blue-600 text-white shadow-xs font-black'
+                        : 'bg-white/90 text-blue-900 border border-blue-200 hover:bg-blue-100'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
-            )}
-
-            <div className="w-28 h-28 sm:w-32 sm:h-32 mb-4 flex items-center justify-center">
-              <MicrobeMascot type="teamA" size={120} />
             </div>
 
-            <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 px-3 py-1 rounded-full border border-blue-500/30 mb-2">
-              <Compass className="w-4 h-4 text-blue-400" />
-              Blue Identity
+            {/* Mascot Selector */}
+            <div className="w-full text-left">
+              <span className="text-[10px] font-black text-blue-800 uppercase tracking-wider block mb-1.5">
+                Choose 3D Mascot:
+              </span>
+              <div className="grid grid-cols-5 gap-1 w-full">
+                {MASCOT_OPTIONS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => handleSelectMascot('teamA', m.id)}
+                    className={`p-1.5 rounded-xl border flex flex-col items-center gap-0.5 transition-all ${
+                      teamAMascot === m.id
+                        ? 'bg-blue-600 text-white border-blue-700 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-blue-50'
+                    }`}
+                  >
+                    <span className="text-base">{m.icon}</span>
+                    <span className="text-[9px] font-bold truncate max-w-full">{m.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-
-            <h3 className="text-2xl sm:text-3xl font-black text-white font-heading">
-              TEAM A
-            </h3>
-            <div className="text-lg font-bold text-blue-300">
-              THE EXPLORERS
-            </div>
-
-            <p className="text-xs text-slate-300 mt-2 text-center max-w-xs">
-              Observe • Solve • Win. Pioneers unlocking the deep mysteries of the microscopic world.
-            </p>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelectTeam('teamA');
-              }}
-              className={`mt-6 w-full py-3 rounded-xl font-black text-sm tracking-wide transition-all ${
-                selectedTeam === 'teamA'
-                  ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/40'
-                  : 'bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white'
-              }`}
-            >
-              {selectedTeam === 'teamA' ? 'SELECTED' : 'SELECT TEAM A'}
-            </button>
           </div>
 
-          {/* Team B: The Guardians */}
+          {/* Team B Customizer */}
           <div
-            onClick={() => handleSelectTeam('teamB')}
-            className={`cursor-pointer rounded-3xl p-6 sm:p-8 border-2 transition-all flex flex-col items-center relative group ${
-              selectedTeam === 'teamB'
-                ? 'bg-orange-950/80 border-orange-400 shadow-2xl shadow-orange-500/40 scale-102 ring-4 ring-orange-500/30'
-                : 'bg-slate-900/60 border-slate-800 hover:border-orange-500/50 hover:bg-slate-800/60'
+            onClick={() => setActiveEditing('teamB')}
+            className={`clay-card-orange p-5 sm:p-6 flex flex-col items-center relative transition-all ${
+              activeEditing === 'teamB' ? 'ring-4 ring-orange-400 scale-102 shadow-xl' : 'opacity-95'
             }`}
           >
-            {selectedTeam === 'teamB' && (
-              <div className="absolute top-4 right-4 bg-orange-500 text-white p-1 rounded-full">
-                <CheckCircle2 className="w-5 h-5" />
+            <div className="w-full flex items-center justify-between mb-3">
+              <span className="clay-pill px-3 py-1 text-xs font-black text-orange-900 uppercase flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-orange-600" />
+                Team B Identity
+              </span>
+              <span className="text-[11px] font-bold text-orange-700 bg-orange-100 px-2.5 py-0.5 rounded-full">
+                🌽 Corn Stalks
+              </span>
+            </div>
+
+            {/* Live 3D Specimen Avatar */}
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-slate-950 border-4 border-white shadow-xl mb-3 relative ring-4 ring-orange-300 flex-shrink-0">
+              <MicrobeScene
+                type={teamBMascot as any}
+                color="#F97316"
+                className="w-full h-full"
+              />
+            </div>
+
+            {/* Team Name Input with Presets */}
+            <div className="w-full mb-3">
+              <label className="block text-[11px] font-black text-orange-950 uppercase tracking-wider mb-1 text-left">
+                Team B Name:
+              </label>
+              <input
+                type="text"
+                value={teamBName}
+                onChange={(e) => setTeamBName(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-white border-2 border-orange-300 text-slate-900 font-extrabold text-base focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-inner"
+                placeholder="Enter team name..."
+              />
+            </div>
+
+            {/* Smart Board 1-Tap Preset Name Chips */}
+            <div className="w-full mb-4 text-left">
+              <span className="text-[10px] font-black text-orange-800 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                <Wand2 className="w-3 h-3" /> Quick Presets (1-Tap):
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_NAMES_B.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => handleSelectPreset('teamB', preset)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all ${
+                      teamBName === preset
+                        ? 'bg-orange-600 text-white shadow-xs font-black'
+                        : 'bg-white/90 text-orange-900 border border-orange-200 hover:bg-orange-100'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
-            )}
-
-            <div className="w-28 h-28 sm:w-32 sm:h-32 mb-4 flex items-center justify-center">
-              <MicrobeMascot type="teamB" size={120} />
             </div>
 
-            <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-orange-400 bg-orange-950/80 px-3 py-1 rounded-full border border-orange-500/30 mb-2">
-              <Shield className="w-4 h-4 text-orange-400" />
-              Orange Identity
+            {/* Mascot Selector */}
+            <div className="w-full text-left">
+              <span className="text-[10px] font-black text-orange-800 uppercase tracking-wider block mb-1.5">
+                Choose 3D Mascot:
+              </span>
+              <div className="grid grid-cols-5 gap-1 w-full">
+                {MASCOT_OPTIONS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => handleSelectMascot('teamB', m.id)}
+                    className={`p-1.5 rounded-xl border flex flex-col items-center gap-0.5 transition-all ${
+                      teamBMascot === m.id
+                        ? 'bg-orange-600 text-white border-orange-700 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-orange-50'
+                    }`}
+                  >
+                    <span className="text-base">{m.icon}</span>
+                    <span className="text-[9px] font-bold truncate max-w-full">{m.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-
-            <h3 className="text-2xl sm:text-3xl font-black text-white font-heading">
-              TEAM B
-            </h3>
-            <div className="text-lg font-bold text-orange-300">
-              THE GUARDIANS
-            </div>
-
-            <p className="text-xs text-slate-300 mt-2 text-center max-w-xs">
-              Learn • Compete • Lead. Protectors championing ecological balance and species preservation.
-            </p>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelectTeam('teamB');
-              }}
-              className={`mt-6 w-full py-3 rounded-xl font-black text-sm tracking-wide transition-all ${
-                selectedTeam === 'teamB'
-                  ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/40'
-                  : 'bg-slate-800 hover:bg-orange-600 text-slate-200 hover:text-white'
-              }`}
-            >
-              {selectedTeam === 'teamB' ? 'SELECTED' : 'SELECT TEAM B'}
-            </button>
           </div>
 
         </div>
 
-        {/* Celebratory Ready Alert Banner */}
-        {confirmedTeam && (
-          <div className="mb-6 p-3 px-6 rounded-2xl bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/50 flex items-center gap-3 animate-bounce">
-            <span className="text-2xl">🎉</span>
-            <span className="font-extrabold text-white text-base">
-              {confirmedTeam === 'teamA' ? 'TEAM A READY!' : 'TEAM B READY!'}
-            </span>
-          </div>
-        )}
-
-        {/* Continue Button */}
+        {/* Ready Action Button */}
         <button
           onClick={handleContinue}
-          className="px-8 py-3.5 sm:px-10 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 font-heading"
+          className="clay-btn-emerald px-10 py-4 text-lg sm:text-xl font-black flex items-center gap-2 font-heading tracking-wide"
         >
-          <span>CONTINUE TO RULES</span>
-          <ArrowRight className="w-5 h-5" />
+          <span>CONFIRM TEAMS & CONTINUE</span>
+          <ArrowRight className="w-6 h-6" />
         </button>
 
       </div>

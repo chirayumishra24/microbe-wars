@@ -5,6 +5,7 @@ import { sounds } from '@/utils/audio';
 
 export type GameStage =
   | 'start'
+  | 'team-selection'
   | 'how-to-play'
   | 'map'
   | 'zone-1'
@@ -26,13 +27,25 @@ export interface Badge {
   unlocked: boolean;
 }
 
+export type GardenCameraPreset = 'standard' | 'cinematic' | 'teamA' | 'teamB';
+
 interface GameContextType {
   stage: GameStage;
   setStage: (stage: GameStage) => void;
+  teamAName: string;
+  setTeamAName: (name: string) => void;
+  teamBName: string;
+  setTeamBName: (name: string) => void;
+  teamAMascot: string;
+  setTeamAMascot: (mascot: string) => void;
+  teamBMascot: string;
+  setTeamBMascot: (mascot: string) => void;
   teamAScore: number;
   teamBScore: number;
   teamACorrectCount: number;
   teamBCorrectCount: number;
+  teamAStreak: number;
+  teamBStreak: number;
   selectedTeam: 'teamA' | 'teamB' | null;
   setSelectedTeam: (team: 'teamA' | 'teamB') => void;
   activeTurnTeam: 'teamA' | 'teamB';
@@ -40,6 +53,10 @@ interface GameContextType {
   switchTurn: () => void;
   addScore: (points: number, targetTeam?: 'teamA' | 'teamB') => void;
   deductScore: (points: number, targetTeam?: 'teamA' | 'teamB') => void;
+  gardenInspectMode: boolean;
+  setGardenInspectMode: (inspect: boolean) => void;
+  gardenCameraPreset: GardenCameraPreset;
+  setGardenCameraPreset: (preset: GardenCameraPreset) => void;
   badges: Badge[];
   unlockBadge: (badgeId: string) => void;
   completedZones: {
@@ -72,14 +89,22 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [stage, setStageState] = useState<GameStage>('start');
+  const [teamAName, setTeamAName] = useState<string>('The Explorers');
+  const [teamBName, setTeamBName] = useState<string>('The Guardians');
+  const [teamAMascot, setTeamAMascot] = useState<string>('bacteria');
+  const [teamBMascot, setTeamBMascot] = useState<string>('amoeba');
   const [teamAScore, setTeamAScore] = useState<number>(0);
   const [teamBScore, setTeamBScore] = useState<number>(0);
   const [teamACorrectCount, setTeamACorrectCount] = useState<number>(0);
   const [teamBCorrectCount, setTeamBCorrectCount] = useState<number>(0);
+  const [teamAStreak, setTeamAStreak] = useState<number>(0);
+  const [teamBStreak, setTeamBStreak] = useState<number>(0);
   const [selectedTeam, setSelectedTeam] = useState<'teamA' | 'teamB' | null>('teamA');
   const [activeTurnTeam, setActiveTurnTeam] = useState<'teamA' | 'teamB'>('teamA');
   const [badges, setBadges] = useState<Badge[]>(INITIAL_BADGES);
   const [audioEnabled, setAudioEnabledState] = useState<boolean>(true);
+  const [gardenInspectMode, setGardenInspectMode] = useState<boolean>(false);
+  const [gardenCameraPreset, setGardenCameraPreset] = useState<GardenCameraPreset>('standard');
 
   const [completedZones, setCompletedZones] = useState({
     zone1: false,
@@ -106,9 +131,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (team === 'teamA') {
       setTeamAScore((prev) => Math.max(0, prev + points));
       setTeamACorrectCount((prev) => prev + 1);
+      setTeamAStreak((prev) => prev + 1);
     } else {
       setTeamBScore((prev) => Math.max(0, prev + points));
       setTeamBCorrectCount((prev) => prev + 1);
+      setTeamBStreak((prev) => prev + 1);
     }
   };
 
@@ -116,8 +143,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const team = targetTeam || activeTurnTeam;
     if (team === 'teamA') {
       setTeamAScore((prev) => Math.max(0, prev - points));
+      setTeamAStreak(0);
     } else {
       setTeamBScore((prev) => Math.max(0, prev - points));
+      setTeamBStreak(0);
     }
   };
 
@@ -151,8 +180,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTeamBScore(0);
     setTeamACorrectCount(0);
     setTeamBCorrectCount(0);
+    setTeamAStreak(0);
+    setTeamBStreak(0);
     setSelectedTeam('teamA');
     setActiveTurnTeam('teamA');
+    setGardenInspectMode(false);
+    setGardenCameraPreset('standard');
     setBadges(INITIAL_BADGES);
     setCompletedZones({
       zone1: false,
@@ -172,10 +205,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         stage,
         setStage,
+        teamAName,
+        setTeamAName,
+        teamBName,
+        setTeamBName,
+        teamAMascot,
+        setTeamAMascot,
+        teamBMascot,
+        setTeamBMascot,
         teamAScore,
         teamBScore,
         teamACorrectCount,
         teamBCorrectCount,
+        teamAStreak,
+        teamBStreak,
         selectedTeam,
         setSelectedTeam,
         activeTurnTeam,
@@ -183,6 +226,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchTurn,
         addScore,
         deductScore,
+        gardenInspectMode,
+        setGardenInspectMode,
+        gardenCameraPreset,
+        setGardenCameraPreset,
         badges,
         unlockBadge,
         completedZones,

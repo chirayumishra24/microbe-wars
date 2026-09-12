@@ -1,28 +1,56 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useGame } from '@/context/GameContext';
+import { useGame, GardenCameraPreset } from '@/context/GameContext';
 import { sounds } from '@/utils/audio';
-import { Volume2, VolumeX, Map, Award, RefreshCw, Trophy, ArrowRightLeft, Sprout, Maximize, Minimize, Music } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  Map,
+  Award,
+  RefreshCw,
+  Trophy,
+  ArrowRightLeft,
+  Sprout,
+  Maximize,
+  Minimize,
+  Music,
+  Flame,
+  BookOpen,
+  Camera,
+  X,
+} from 'lucide-react';
+import { MicrobeCodexModal } from '@/components/common/MicrobeCodexModal';
+import { HallOfFameModal } from '@/components/common/HallOfFameModal';
 
 export const TopScoreboard: React.FC = () => {
   const {
     stage,
     setStage,
+    teamAName,
+    teamBName,
     teamAScore,
     teamBScore,
     teamACorrectCount,
     teamBCorrectCount,
+    teamAStreak,
+    teamBStreak,
     activeTurnTeam,
     switchTurn,
     badges,
     audioEnabled,
     toggleAudio,
     resetGame,
-    completedZones
+    completedZones,
+    gardenInspectMode,
+    setGardenInspectMode,
+    gardenCameraPreset,
+    setGardenCameraPreset,
   } = useGame();
 
   const [showBadges, setShowBadges] = useState(false);
+  const [showCodex, setShowCodex] = useState(false);
+  const [showHallOfFame, setShowHallOfFame] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [bgmOn, setBgmOn] = useState(false);
 
@@ -135,8 +163,14 @@ export const TopScoreboard: React.FC = () => {
               </div>
               <div className="text-left">
                 <div className="text-[10px] text-blue-800 font-black tracking-wider leading-none flex items-center gap-1">
-                  <span>EXPLORERS</span>
+                  <span className="truncate max-w-[100px] uppercase">{teamAName}</span>
                   {activeTurnTeam === 'teamA' && <span className="text-blue-600">• YOUR TURN</span>}
+                  {teamAStreak >= 2 && (
+                    <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] px-1 py-0.2 rounded font-black flex items-center gap-0.5 animate-pulse">
+                      <Flame className="w-2.5 h-2.5 text-amber-600 fill-amber-500" />
+                      {teamAStreak}x
+                    </span>
+                  )}
                 </div>
                 <div className="text-base sm:text-lg font-black text-slate-900 leading-none mt-1 flex items-center gap-1.5 font-heading">
                   <span className="text-amber-500">⭐</span>
@@ -175,8 +209,14 @@ export const TopScoreboard: React.FC = () => {
               </div>
               <div className="text-left">
                 <div className="text-[10px] text-orange-800 font-black tracking-wider leading-none flex items-center gap-1">
-                  <span>GUARDIANS</span>
+                  <span className="truncate max-w-[100px] uppercase">{teamBName}</span>
                   {activeTurnTeam === 'teamB' && <span className="text-orange-600">• YOUR TURN</span>}
+                  {teamBStreak >= 2 && (
+                    <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] px-1 py-0.2 rounded font-black flex items-center gap-0.5 animate-pulse">
+                      <Flame className="w-2.5 h-2.5 text-amber-600 fill-amber-500" />
+                      {teamBStreak}x
+                    </span>
+                  )}
                 </div>
                 <div className="text-base sm:text-lg font-black text-slate-900 leading-none mt-1 flex items-center gap-1.5 font-heading">
                   <span className="text-amber-500">⭐</span>
@@ -191,9 +231,52 @@ export const TopScoreboard: React.FC = () => {
 
           </div>
 
-          {/* Clay Utility Buttons: Badges, Map, Sound, Reset */}
+          {/* Clay Utility Buttons: Inspect 3D, Codex, Records, Badges, Map, Sound, Reset */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             
+            {/* 3D Living Garden Orbit Mode Toggle */}
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setGardenInspectMode(!gardenInspectMode);
+              }}
+              className={`p-2 sm:px-3 sm:py-2 rounded-2xl border-2 flex items-center gap-1 text-xs font-bold font-heading transition-all ${
+                gardenInspectMode
+                  ? 'bg-emerald-600 text-white border-white shadow-md animate-pulse'
+                  : 'clay-btn-white text-emerald-700 hover:text-emerald-900'
+              }`}
+              title="Inspect 3D Garden Crops"
+            >
+              <Sprout className="w-4 h-4 text-emerald-600" />
+              <span className="hidden sm:inline">3D Garden</span>
+            </button>
+
+            {/* Microbe Field Codex Button */}
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setShowCodex(true);
+              }}
+              className="clay-btn-white p-2 sm:px-2.5 sm:py-2 text-teal-700 flex items-center gap-1 text-xs font-bold font-heading"
+              title="Open Microbe Codex"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden xl:inline">Codex</span>
+            </button>
+
+            {/* Hall of Fame Records Button */}
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setShowHallOfFame(true);
+              }}
+              className="clay-btn-white p-2 sm:px-2.5 sm:py-2 text-amber-600 flex items-center gap-1 text-xs font-bold font-heading"
+              title="Classroom Hall of Fame"
+            >
+              <Trophy className="w-4 h-4" />
+              <span className="hidden xl:inline">Hall of Fame</span>
+            </button>
+
             {/* Badges Drawer Button */}
             <button
               onClick={() => setShowBadges(!showBadges)}
@@ -209,7 +292,7 @@ export const TopScoreboard: React.FC = () => {
             </button>
 
             {/* Quick Map Button */}
-            {stage !== 'map' && stage !== 'start' && (
+            {stage !== 'map' && stage !== 'start' && stage !== 'team-selection' && (
               <button
                 onClick={() => setStage('map')}
                 className="clay-btn-emerald px-3 py-1.5 flex items-center gap-1.5 text-xs font-bold font-heading"
@@ -277,6 +360,61 @@ export const TopScoreboard: React.FC = () => {
         </div>
       </header>
 
+      {/* 3D Garden Touch Inspection Toolbar */}
+      {gardenInspectMode && (
+        <div className="fixed top-18 inset-x-0 z-40 flex flex-col items-center gap-2 pointer-events-none px-3 select-none animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="clay-card pointer-events-auto p-2 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-center gap-2 bg-white/95 border-2 border-emerald-300 shadow-2xl">
+            <div className="flex items-center gap-1.5 mr-1 text-xs font-black text-emerald-900 uppercase">
+              <Camera className="w-4 h-4 text-emerald-600" />
+              <span>Camera Views:</span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {(
+                [
+                  { id: 'standard', label: 'All Plots', icon: '🌱' },
+                  { id: 'teamA', label: `${teamAName} Sunflowers`, icon: '🌻' },
+                  { id: 'teamB', label: `${teamBName} Corn`, icon: '🌽' },
+                  { id: 'cinematic', label: 'Cinematic Pan', icon: '🎬' },
+                ] as { id: GardenCameraPreset; label: string; icon: string }[]
+              ).map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    sounds.playClick();
+                    setGardenCameraPreset(preset.id);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1 ${
+                    gardenCameraPreset === preset.id
+                      ? 'bg-emerald-600 text-white shadow-xs scale-102'
+                      : 'bg-slate-100 text-slate-700 hover:bg-emerald-50'
+                  }`}
+                >
+                  <span>{preset.icon}</span>
+                  <span>{preset.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setGardenInspectMode(false);
+                setGardenCameraPreset('standard');
+              }}
+              className="ml-2 clay-btn-white px-3 py-1.5 text-xs font-black text-red-600 hover:bg-red-50 flex items-center gap-1"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Exit Garden</span>
+            </button>
+          </div>
+
+          <div className="clay-pill px-3 py-0.5 text-[10px] font-bold text-slate-700 bg-white/90 border border-slate-300 shadow-xs pointer-events-auto">
+            👆 Touch and drag anywhere to freely orbit around your crops
+          </div>
+        </div>
+      )}
+
       {/* Badges Popover Drawer */}
       {showBadges && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -322,6 +460,12 @@ export const TopScoreboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Microbe Field Codex Modal */}
+      <MicrobeCodexModal isOpen={showCodex} onClose={() => setShowCodex(false)} />
+
+      {/* Classroom Hall of Fame Modal */}
+      <HallOfFameModal isOpen={showHallOfFame} onClose={() => setShowHallOfFame(false)} />
     </>
   );
 };

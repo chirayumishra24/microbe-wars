@@ -5,7 +5,14 @@ import { useGame } from '@/context/GameContext';
 import { Sprout, Sun } from 'lucide-react';
 
 export const GardenStatusWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const { teamACorrectCount, teamBCorrectCount } = useGame();
+  const {
+    teamACorrectCount,
+    teamBCorrectCount,
+    teamAName,
+    teamBName,
+    setGardenInspectMode,
+    setGardenCameraPreset,
+  } = useGame();
 
   const growthLevelA = Math.min(100, teamACorrectCount * 12);
   const growthLevelB = Math.min(100, teamBCorrectCount * 12);
@@ -20,6 +27,11 @@ export const GardenStatusWidget: React.FC<{ className?: string }> = ({ className
 
   const isALeading = teamACorrectCount > teamBCorrectCount;
   const isBLeading = teamBCorrectCount > teamACorrectCount;
+
+  const handleInspectTeam = (team: 'teamA' | 'teamB') => {
+    setGardenCameraPreset(team);
+    setGardenInspectMode(true);
+  };
 
   return (
     <div className={`p-4 rounded-3xl bg-white/90 backdrop-blur-md border border-emerald-200/90 shadow-md ${className}`}>
@@ -36,12 +48,16 @@ export const GardenStatusWidget: React.FC<{ className?: string }> = ({ className
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Team A Garden Plot */}
-        <div className={`p-3.5 rounded-2xl border transition-all ${
-          isALeading ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-300' : 'bg-slate-50 border-slate-200'
-        }`}>
+        <div
+          onClick={() => handleInspectTeam('teamA')}
+          className={`p-3.5 rounded-2xl border transition-all cursor-pointer hover:scale-102 ${
+            isALeading ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-300' : 'bg-slate-50 border-slate-200 hover:border-blue-300'
+          }`}
+          title="Tap to inspect Team A crops in 3D"
+        >
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-black text-blue-800">
-              TEAM A (EXPLORERS) GARDEN
+            <span className="text-xs font-black text-blue-800 uppercase">
+              {teamAName} Plot (Sunflowers)
             </span>
             <span className="text-xs font-mono font-bold text-blue-700">
               {teamACorrectCount} Right Answers
@@ -50,21 +66,28 @@ export const GardenStatusWidget: React.FC<{ className?: string }> = ({ className
           <div className="text-[11px] font-semibold text-slate-600 mb-2">
             Status: <b className="text-blue-900">{getStageName(teamACorrectCount)}</b>
           </div>
-          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mb-1.5">
             <div
               className="bg-gradient-to-r from-blue-500 via-teal-400 to-emerald-500 h-full rounded-full transition-all duration-700"
               style={{ width: `${Math.max(8, growthLevelA)}%` }}
             />
           </div>
+          <div className="text-[10px] font-bold text-blue-600 text-right">
+            🔍 Tap to inspect 3D crops
+          </div>
         </div>
 
         {/* Team B Garden Plot */}
-        <div className={`p-3.5 rounded-2xl border transition-all ${
-          isBLeading ? 'bg-orange-50/80 border-orange-400 ring-2 ring-orange-300' : 'bg-slate-50 border-slate-200'
-        }`}>
+        <div
+          onClick={() => handleInspectTeam('teamB')}
+          className={`p-3.5 rounded-2xl border transition-all cursor-pointer hover:scale-102 ${
+            isBLeading ? 'bg-orange-50/80 border-orange-400 ring-2 ring-orange-300' : 'bg-slate-50 border-slate-200 hover:border-orange-300'
+          }`}
+          title="Tap to inspect Team B crops in 3D"
+        >
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-black text-orange-800">
-              TEAM B (GUARDIANS) GARDEN
+            <span className="text-xs font-black text-orange-800 uppercase">
+              {teamBName} Plot (Corn)
             </span>
             <span className="text-xs font-mono font-bold text-orange-700">
               {teamBCorrectCount} Right Answers
@@ -73,11 +96,14 @@ export const GardenStatusWidget: React.FC<{ className?: string }> = ({ className
           <div className="text-[11px] font-semibold text-slate-600 mb-2">
             Status: <b className="text-orange-900">{getStageName(teamBCorrectCount)}</b>
           </div>
-          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mb-1.5">
             <div
               className="bg-gradient-to-r from-orange-500 via-amber-400 to-emerald-500 h-full rounded-full transition-all duration-700"
               style={{ width: `${Math.max(8, growthLevelB)}%` }}
             />
+          </div>
+          <div className="text-[10px] font-bold text-orange-600 text-right">
+            🔍 Tap to inspect 3D crops
           </div>
         </div>
       </div>

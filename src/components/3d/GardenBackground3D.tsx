@@ -6,12 +6,18 @@ import { useGame } from '@/context/GameContext';
 
 export const GardenBackground3D: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { teamACorrectCount, teamBCorrectCount } = useGame();
+  const { teamACorrectCount, teamBCorrectCount, gardenInspectMode, gardenCameraPreset } = useGame();
 
   const countsRef = useRef({ a: teamACorrectCount, b: teamBCorrectCount });
+  const inspectRef = useRef({ inspect: gardenInspectMode, preset: gardenCameraPreset });
+
   useEffect(() => {
     countsRef.current = { a: teamACorrectCount, b: teamBCorrectCount };
   }, [teamACorrectCount, teamBCorrectCount]);
+
+  useEffect(() => {
+    inspectRef.current = { inspect: gardenInspectMode, preset: gardenCameraPreset };
+  }, [gardenInspectMode, gardenCameraPreset]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -583,8 +589,73 @@ export const GardenBackground3D: React.FC = () => {
       // Pollen swirl
       pollen.rotation.y = elapsed * 0.04;
 
+      // Camera presets for touch inspection
+      const presets = {
+        standard: { pos: new THREE.Vector3(0, 4.2, 9.4), look: new THREE.Vector3(0, 1.3, 0) },
+        cinematic: { pos: new THREE.Vector3(0, 3.0, 7.8), look: new THREE.Vector3(0, 1.4, 0) },
+        teamA: { pos: new THREE.Vector3(-4.4, 2.6, 5.2), look: new THREE.Vector3(-4.5, 1.4, 0) },
+        teamB: { pos: new THREE.Vector3(4.4, 2.6, 5.2), look: new THREE.Vector3(4.5, 1.4, 0) },
+      };
+
+      let isPointerDown = false;
+      let prevPointerX = 0;
+      let prevPointerY = 0;
+      const orbitOffset = { x: 0, y: 0 };
+
+      const onPointerDown = (e: MouseEvent | TouchEvent) => {
+        if (!inspectRef.current.inspect) return;
+        isPointerDown = true;
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        prevPointerX = clientX;
+        prevPointerY = clientY;
+      };
+
+      const onPointerMove = (e: MouseEvent | TouchEvent) => {
+        if (!isPointerDown || !inspectRef.current.inspect) return;
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - prevPointerX;
+        const dy = clientY - prevPointerY;
+        orbitOffset.x = Math.max(-1.8, Math.min(1.8, orbitOffset.x + dx * 0.005));
+        orbitOffset.y = Math.max(-0.6, Math.min(0.8, orbitOffset.y - dy * 0.005));
+        prevPointerX = clientX;
+        prevPointerY = clientY;
+      };
+
+      const onPointerUp = () => {
+        isPointerDown = false;
+      };
+
+      container.addEventListener('mousedown', onPointerDown);
+      window.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', onPointerUp);
+      container.addEventListener('touchstart', onPointerDown, { passive: true });
+      window.addEventListener('touchmove', onPointerMove, { passive: true });
+      window.addEventListener('touchend', onPointerUp);
+
+      // Camera lerp target vector
+      const currentLookAt = new THREE.Vector3(0, 1.3, 0);
+
       // Soft cinematic camera motion
-      camera.position.x = Math.sin(elapsed * 0.18) * 0.35;
+      const currentPreset = inspectRef.current.preset;
+      const targetPreset = presets[currentPreset] || presets.standard;
+      const targetPos = targetPreset.pos.clone();
+      const targetLook = targetPreset.look.clone();
+
+      if (inspectRef.current.inspect) {
+        targetPos.x += orbitOffset.x * 2.8;
+        targetPos.y += orbitOffset.y * 1.5;
+        targetLook.x += orbitOffset.x;
+      } else {
+        targetPos.x += Math.sin(elapsed * 0.18) * 0.35;
+        orbitOffset.x *= 0.95;
+        orbitOffset.y *= 0.95;
+      }
+
+      camera.position.lerp(targetPos, 0.05);
+      currentLookAt.lerp(targetLook, 0.05);
+      camera.lookAt(currentLookAt);
 
       renderer.render(scene, camera);
     };
@@ -614,7 +685,11 @@ export const GardenBackground3D: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 pointer-events-none -z-10 overflow-hidden"
+      className={`fixed inset-0 overflow-hidden transition-all duration-500 ${
+        gardenInspectMode
+          ? 'pointer-events-auto z-20 cursor-grab active:cursor-grabbing'
+          : 'pointer-events-none -z-10'
+      }`}
       style={{ opacity: 1 }}
     />
   );

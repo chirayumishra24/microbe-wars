@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useGame } from '@/context/GameContext';
 import { Compass, Shield, Sprout } from 'lucide-react';
 
 interface TurnPillProps {
@@ -18,7 +19,9 @@ export const TurnPill: React.FC<TurnPillProps> = ({
   labelPrefix = 'TURN',
   className = '',
 }) => {
+  const { teamAName, teamBName } = useGame();
   const isA = currentTeam === 'teamA';
+  const name = isA ? teamAName : teamBName;
 
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
@@ -32,12 +35,12 @@ export const TurnPill: React.FC<TurnPillProps> = ({
         {isA ? (
           <>
             <Compass className="w-4 h-4 text-white" />
-            <span>{labelPrefix}: The Explorers (Team A)</span>
+            <span>{labelPrefix}: {name} (Team A)</span>
           </>
         ) : (
           <>
             <Shield className="w-4 h-4 text-white" />
-            <span>{labelPrefix}: The Guardians (Team B)</span>
+            <span>{labelPrefix}: {name} (Team B)</span>
           </>
         )}
       </span>
