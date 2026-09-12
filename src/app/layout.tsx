@@ -29,15 +29,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased min-h-screen text-slate-900 selection:bg-emerald-500 selection:text-white relative bg-transparent">
+    <html lang="en" className="h-full overflow-hidden">
+      <body className="antialiased h-screen w-screen overflow-hidden text-slate-900 selection:bg-emerald-500 selection:text-white relative bg-transparent flex flex-col">
         <GameProvider>
           {/* 3D Living Garden Engine at z-0 */}
           <GardenBackground3D />
           {/* Claymorphic Top Scoreboard at z-50 */}
           <TopScoreboard />
           {/* Main Stage at z-10 */}
-          <main className="w-full relative z-10">
+          <main className="w-full flex-1 relative z-10 overflow-hidden flex flex-col">
             {children}
           </main>
           {/* Turn Clash Announcement Overlay */}

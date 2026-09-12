@@ -109,6 +109,10 @@ export const TopScoreboard: React.FC = () => {
     }
   };
 
+  if (stage === 'start') {
+    return null;
+  }
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b-2 border-emerald-100 shadow-md px-3 py-2 sm:px-6 sm:py-2.5">
@@ -292,7 +296,7 @@ export const TopScoreboard: React.FC = () => {
             </button>
 
             {/* Quick Map Button */}
-            {stage !== 'map' && stage !== 'start' && stage !== 'team-selection' && (
+            {stage !== 'map' && stage !== 'team-selection' && (
               <button
                 onClick={() => setStage('map')}
                 className="clay-btn-emerald px-3 py-1.5 flex items-center gap-1.5 text-xs font-bold font-heading"

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useGame } from '@/context/GameContext';
 import { MicrobeScene } from '@/components/3d/MicrobeScene';
-import { Compass, Shield, CheckCircle2, ArrowRight, Sparkles, Wand2 } from 'lucide-react';
+import { Compass, Shield, ArrowRight, Sparkles, Wand2 } from 'lucide-react';
 import { sounds } from '@/utils/audio';
 import { fireScorePop } from '@/utils/confetti';
 
@@ -111,7 +111,7 @@ export const TeamSelectionScreen: React.FC = () => {
             {/* Live 3D Specimen Avatar */}
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-slate-950 border-4 border-white shadow-xl mb-3 relative ring-4 ring-blue-300 flex-shrink-0">
               <MicrobeScene
-                type={teamAMascot as any}
+                type={teamAMascot as 'bacteria' | 'amoeba' | 'fungi' | 'algae' | 'virus'}
                 color="#34D399"
                 className="w-full h-full"
               />
@@ -199,7 +199,7 @@ export const TeamSelectionScreen: React.FC = () => {
             {/* Live 3D Specimen Avatar */}
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-slate-950 border-4 border-white shadow-xl mb-3 relative ring-4 ring-orange-300 flex-shrink-0">
               <MicrobeScene
-                type={teamBMascot as any}
+                type={teamBMascot as 'bacteria' | 'amoeba' | 'fungi' | 'algae' | 'virus'}
                 color="#F97316"
                 className="w-full h-full"
               />
