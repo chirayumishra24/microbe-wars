@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useGame } from '@/context/GameContext';
 import { MicrobeScene } from '@/components/3d/MicrobeScene';
-import { Compass, Shield, ArrowRight, Sparkles, Wand2 } from 'lucide-react';
+import { Compass, Shield, ArrowRight, ArrowLeft, Sparkles, Wand2 } from 'lucide-react';
 import { sounds } from '@/utils/audio';
 import { fireScorePop } from '@/utils/confetti';
 
@@ -34,6 +34,7 @@ const MASCOT_OPTIONS: { id: 'bacteria' | 'amoeba' | 'fungi' | 'algae' | 'virus';
 export const TeamSelectionScreen: React.FC = () => {
   const {
     setStage,
+    goBack,
     teamAName,
     setTeamAName,
     teamBName,
@@ -269,14 +270,25 @@ export const TeamSelectionScreen: React.FC = () => {
 
         </div>
 
-        {/* Ready Action Button */}
-        <button
-          onClick={handleContinue}
-          className="clay-btn-emerald px-10 py-4 text-lg sm:text-xl font-black flex items-center gap-2 font-heading tracking-wide"
-        >
-          <span>CONFIRM TEAMS & CONTINUE</span>
-          <ArrowRight className="w-6 h-6" />
-        </button>
+        {/* Navigation Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={goBack}
+            className="clay-btn-white w-full sm:w-auto px-8 py-4 text-base sm:text-lg font-black flex items-center justify-center gap-2 font-heading tracking-wide cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>BACK</span>
+          </button>
+
+          <button
+            onClick={handleContinue}
+            className="clay-btn-emerald w-full sm:w-auto px-10 py-4 text-lg sm:text-xl font-black flex items-center justify-center gap-2 font-heading tracking-wide cursor-pointer"
+          >
+            <span>CONFIRM TEAMS & CONTINUE</span>
+            <ArrowRight className="w-6 h-6" />
+          </button>
+        </div>
 
       </div>
     </div>

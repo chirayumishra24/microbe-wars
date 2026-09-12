@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useGame, GardenCameraPreset } from '@/context/GameContext';
 import { sounds } from '@/utils/audio';
 import {
+  ArrowLeft,
   Volume2,
   VolumeX,
   Map,
@@ -27,6 +28,8 @@ export const TopScoreboard: React.FC = () => {
   const {
     stage,
     setStage,
+    canGoBack,
+    goBack,
     teamAName,
     teamBName,
     teamAScore,
@@ -118,8 +121,20 @@ export const TopScoreboard: React.FC = () => {
       <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b-2 border-emerald-100 shadow-md px-3 py-2 sm:px-6 sm:py-2.5">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           
-          {/* Brand & Stage */}
-          <div className="flex items-center gap-3">
+          {/* Brand & Stage & Back Button */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {canGoBack && (
+              <button
+                type="button"
+                onClick={goBack}
+                className="clay-btn-white px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-slate-800 text-xs sm:text-sm font-black flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 transition-all font-heading border-2 border-slate-200 cursor-pointer"
+                title="Go back one stage"
+              >
+                <ArrowLeft className="w-4 h-4 text-emerald-700 stroke-[2.5]" />
+                <span className="font-extrabold">Back</span>
+              </button>
+            )}
+
             <button
               onClick={() => setStage('map')}
               className="flex items-center gap-2.5 group text-left hover:opacity-90 transition-opacity"

@@ -4,10 +4,10 @@ import React from 'react';
 import { useGame } from '@/context/GameContext';
 import { LEARNING_TAKEAWAYS } from '@/data/questions';
 import { sounds } from '@/utils/audio';
-import { RefreshCw, BookOpen, Award, Heart } from 'lucide-react';
+import { RefreshCw, BookOpen, Award, Heart, ArrowLeft } from 'lucide-react';
 
 export const LearningSummary: React.FC = () => {
-  const { resetGame, badges } = useGame();
+  const { resetGame, badges, goBack } = useGame();
 
   const handlePlayAgain = () => {
     sounds.playClick();
@@ -99,11 +99,20 @@ export const LearningSummary: React.FC = () => {
           </div>
         </div>
 
-        {/* Restart Action */}
-        <div className="flex justify-center">
+        {/* Restart / Back Actions */}
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={goBack}
+            className="clay-btn-white px-8 py-4 rounded-3xl text-slate-800 font-black text-base sm:text-lg flex items-center gap-2.5 font-heading cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>BACK TO SCOREBOARD</span>
+          </button>
+
           <button
             onClick={handlePlayAgain}
-            className="clay-btn-emerald px-10 py-4 rounded-3xl text-white font-black text-base sm:text-lg flex items-center gap-2.5 font-heading"
+            className="clay-btn-emerald px-10 py-4 rounded-3xl text-white font-black text-base sm:text-lg flex items-center gap-2.5 font-heading cursor-pointer"
           >
             <RefreshCw className="w-5 h-5" />
             <span>PLAY AGAIN / NEW TOURNAMENT</span>

@@ -29,9 +29,62 @@ export interface Badge {
 
 export type GardenCameraPreset = 'standard' | 'cinematic' | 'teamA' | 'teamB';
 
+export const STAGE_SEQUENCE: GameStage[] = [
+  'start',
+  'team-selection',
+  'how-to-play',
+  'map',
+  'zone-1',
+  'zone-2',
+  'zone-3',
+  'zone-4',
+  'bonus',
+  'rapid-fire',
+  'risk',
+  'final-challenge',
+  'final-score',
+  'summary',
+];
+
+export const PREVIOUS_STAGE_MAP: Record<GameStage, GameStage | null> = {
+  'start': null,
+  'team-selection': 'start',
+  'how-to-play': 'team-selection',
+  'map': 'how-to-play',
+  'zone-1': 'map',
+  'zone-2': 'zone-1',
+  'zone-3': 'zone-2',
+  'zone-4': 'zone-3',
+  'bonus': 'zone-4',
+  'rapid-fire': 'bonus',
+  'risk': 'rapid-fire',
+  'final-challenge': 'risk',
+  'final-score': 'final-challenge',
+  'summary': 'final-score',
+};
+
+const STAGE_ORDER: Record<GameStage, number> = {
+  'start': 0,
+  'team-selection': 1,
+  'how-to-play': 2,
+  'map': 3,
+  'zone-1': 4,
+  'zone-2': 5,
+  'zone-3': 6,
+  'zone-4': 7,
+  'bonus': 8,
+  'rapid-fire': 9,
+  'risk': 10,
+  'final-challenge': 11,
+  'final-score': 12,
+  'summary': 13,
+};
+
 interface GameContextType {
   stage: GameStage;
   setStage: (stage: GameStage) => void;
+  canGoBack: boolean;
+  goBack: () => void;
   teamAName: string;
   setTeamAName: (name: string) => void;
   teamBName: string;
@@ -89,6 +142,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [stage, setStageState] = useState<GameStage>('start');
+  const [stageHistory, setStageHistory] = useState<GameStage[]>([]);
   const [teamAName, setTeamAName] = useState<string>('The Explorers');
   const [teamBName, setTeamBName] = useState<string>('The Guardians');
   const [teamAMascot, setTeamAMascot] = useState<string>('bacteria');
@@ -119,8 +173,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setStage = (newStage: GameStage) => {
     sounds.playClick();
-    setStageState(newStage);
+    setStageState((currentStage) => {
+      if (currentStage !== newStage) {
+        setStageHistory((prev) => [...prev, currentStage]);
+      }
+      return newStage;
+    });
   };
+
+  const goBack = () => {
+    sounds.playClick();
+    const currentOrder = STAGE_ORDER[stage];
+    const next = [...stageHistory];
+    while (next.length > 0) {
+      const candidate = next.pop()!;
+      if (STAGE_ORDER[candidate] < currentOrder) {
+        setStageHistory(next);
+        setStageState(candidate);
+        return;
+      }
+    }
+    const fallback = PREVIOUS_STAGE_MAP[stage];
+    if (fallback) {
+      setStageState(fallback);
+    }
+    setStageHistory([]);
+  };
+
+  const canGoBack = stage !== 'start';
 
   const switchTurn = () => {
     setActiveTurnTeam((prev) => (prev === 'teamA' ? 'teamB' : 'teamA'));
@@ -197,6 +277,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       risk: false,
       finalChallenge: false,
     });
+    setStageHistory([]);
     setStageState('start');
   };
 
@@ -205,6 +286,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         stage,
         setStage,
+        canGoBack,
+        goBack,
         teamAName,
         setTeamAName,
         teamBName,

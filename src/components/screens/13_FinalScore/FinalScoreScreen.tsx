@@ -5,11 +5,11 @@ import { useGame } from '@/context/GameContext';
 import { MicrobeMascot } from '@/components/common/MicrobeMascot';
 import { sounds } from '@/utils/audio';
 import { fireCelebrationConfetti } from '@/utils/confetti';
-import { Sparkles, ArrowRight, RefreshCw, BookOpen, Trophy } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, RefreshCw, BookOpen, Trophy } from 'lucide-react';
 import { HallOfFameModal } from '@/components/common/HallOfFameModal';
 
 export const FinalScoreScreen: React.FC = () => {
-  const { teamAScore, teamBScore, teamAName, teamBName, setStage, resetGame } = useGame();
+  const { teamAScore, teamBScore, teamAName, teamBName, setStage, goBack, resetGame } = useGame();
 
   const [displayedScoreA, setDisplayedScoreA] = useState(0);
   const [displayedScoreB, setDisplayedScoreB] = useState(0);
@@ -173,8 +173,17 @@ export const FinalScoreScreen: React.FC = () => {
         {/* Next Actions */}
         <div className="flex flex-wrap items-center justify-center gap-4">
           <button
+            type="button"
+            onClick={goBack}
+            className="w-full sm:w-auto clay-btn-white px-6 py-4 rounded-3xl text-slate-800 font-black text-base transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back</span>
+          </button>
+
+          <button
             onClick={() => setStage('summary')}
-            className="w-full sm:w-auto clay-btn-emerald px-10 py-4 rounded-3xl text-white font-black text-base sm:text-lg flex items-center justify-center gap-2 font-heading"
+            className="w-full sm:w-auto clay-btn-emerald px-10 py-4 rounded-3xl text-white font-black text-base sm:text-lg flex items-center justify-center gap-2 font-heading cursor-pointer"
           >
             <BookOpen className="w-5 h-5" />
             <span>SEE WHAT WE LEARNED</span>
