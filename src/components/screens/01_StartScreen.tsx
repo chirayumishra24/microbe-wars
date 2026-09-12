@@ -1,14 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '@/context/GameContext';
 import { MicrobeScene } from '@/components/3d/MicrobeScene';
 import { Play, Sparkles, Shield, Compass, Sprout, Volume2, VolumeX, Maximize, Minimize, Zap } from 'lucide-react';
 import { sounds } from '@/utils/audio';
+import { toggleFullscreenMode, isCurrentlyFullscreen, subscribeFullscreenChange } from '@/utils/fullscreen';
 
 export const StartScreen: React.FC = () => {
   const { setStage, audioEnabled, toggleAudio } = useGame();
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    setIsFullscreen(isCurrentlyFullscreen());
+    const unsubscribe = subscribeFullscreenChange((active) => {
+      setIsFullscreen(active);
+    });
+    return unsubscribe;
+  }, []);
 
   const handleStart = () => {
     sounds.playCorrect();
@@ -16,21 +25,10 @@ export const StartScreen: React.FC = () => {
     setStage('team-selection');
   };
 
-  const toggleFullscreen = async () => {
+  const handleToggleFullscreen = async () => {
     sounds.playClick();
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-          setIsFullscreen(false);
-        }
-      }
-    } catch (err) {
-      console.error('Fullscreen toggle error:', err);
-    }
+    const active = await toggleFullscreenMode();
+    setIsFullscreen(active);
   };
 
   return (
@@ -52,8 +50,8 @@ export const StartScreen: React.FC = () => {
             {audioEnabled ? <Volume2 className="w-4 h-4 text-emerald-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
           </button>
           <button
-            onClick={toggleFullscreen}
-            className="w-9 h-9 rounded-xl bg-white/90 hover:bg-white border-2 border-emerald-100 shadow-sm flex items-center justify-center text-slate-700 active:scale-95 transition-all"
+            onClick={handleToggleFullscreen}
+            className="w-9 h-9 rounded-xl bg-white/90 hover:bg-white border-2 border-emerald-100 shadow-sm flex items-center justify-center text-slate-700 active:scale-95 transition-all cursor-pointer"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize className="w-4 h-4 text-emerald-600" /> : <Maximize className="w-4 h-4 text-slate-600" />}

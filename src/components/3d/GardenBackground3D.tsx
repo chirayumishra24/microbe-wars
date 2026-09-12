@@ -688,7 +688,7 @@ export const GardenBackground3D: React.FC = () => {
       className={`fixed inset-0 overflow-hidden transition-all duration-500 ${
         gardenInspectMode
           ? 'pointer-events-auto z-20 cursor-grab active:cursor-grabbing'
-          : 'pointer-events-none -z-10'
+          : 'pointer-events-none z-0'
       }`}
       style={{ opacity: 1 }}
     />

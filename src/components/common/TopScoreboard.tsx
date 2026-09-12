@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { MicrobeCodexModal } from '@/components/common/MicrobeCodexModal';
 import { HallOfFameModal } from '@/components/common/HallOfFameModal';
+import { toggleFullscreenMode, isCurrentlyFullscreen, subscribeFullscreenChange } from '@/utils/fullscreen';
 
 export const TopScoreboard: React.FC = () => {
   const {
@@ -58,27 +59,17 @@ export const TopScoreboard: React.FC = () => {
   const [bgmOn, setBgmOn] = useState(false);
 
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    setIsFullscreen(isCurrentlyFullscreen());
+    const unsubscribe = subscribeFullscreenChange((active) => {
+      setIsFullscreen(active);
+    });
+    return unsubscribe;
   }, []);
 
-  const toggleFullscreen = async () => {
+  const handleToggleFullscreen = async () => {
     sounds.playClick();
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-      } else {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        }
-      }
-    } catch (err) {
-      console.error('Fullscreen toggle error:', err);
-    }
+    const active = await toggleFullscreenMode();
+    setIsFullscreen(active);
   };
 
   // Calculate zone completion percentage
@@ -363,8 +354,9 @@ export const TopScoreboard: React.FC = () => {
 
             {/* Fullscreen Button */}
             <button
-              onClick={toggleFullscreen}
-              className="clay-btn-white p-2.5 text-emerald-700 hover:text-emerald-900 border-2 border-emerald-200"
+              type="button"
+              onClick={handleToggleFullscreen}
+              className="clay-btn-white p-2.5 text-emerald-700 hover:text-emerald-900 border-2 border-emerald-200 cursor-pointer active:scale-95 transition-all"
               title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen Mode"}
               aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen Mode"}
             >

@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full overflow-hidden">
-      <body className="antialiased h-screen w-screen overflow-hidden text-slate-900 selection:bg-emerald-500 selection:text-white relative bg-transparent flex flex-col">
+      <body className="antialiased h-screen w-screen overflow-hidden text-slate-900 selection:bg-emerald-500 selection:text-white relative flex flex-col">
         <GameProvider>
           {/* 3D Living Garden Engine at z-0 */}
           <GardenBackground3D />
