@@ -42,6 +42,12 @@ export const EcosystemEmergency: React.FC = () => {
     }
   };
 
+  const handleRetry = () => {
+    sounds.playClick();
+    setSelectedChoice(null);
+    setStepFeedback(null);
+  };
+
   const handleNextStep = () => {
     sounds.playClick();
     if (stepIdx + 1 < totalSteps) {
@@ -214,19 +220,32 @@ export const EcosystemEmergency: React.FC = () => {
 
             {/* Feedback & Proceed Button */}
             {stepFeedback && (
-              <div className="clay-card p-4 rounded-2xl text-slate-800 text-xs sm:text-sm font-semibold">
+              <div className={`clay-card p-4 rounded-2xl text-xs sm:text-sm font-semibold ${
+                selectedChoice === currentStep.correctIndex
+                  ? 'border-2 border-emerald-500 bg-emerald-50 text-emerald-950'
+                  : 'border-2 border-rose-400 bg-rose-50 text-rose-950'
+              }`}>
                 <p>{stepFeedback}</p>
-                {selectedChoice === currentStep.correctIndex && (
-                  <div className="flex justify-end mt-3">
+                <div className="flex flex-wrap items-center justify-end gap-3 mt-3">
+                  {selectedChoice !== currentStep.correctIndex && (
                     <button
-                      onClick={handleNextStep}
-                      className="clay-btn-emerald px-6 py-2.5 rounded-2xl text-white font-black text-xs sm:text-sm flex items-center gap-1.5"
+                      type="button"
+                      onClick={handleRetry}
+                      className="clay-btn-white px-5 py-2.5 rounded-2xl text-slate-800 font-black text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer shadow-sm hover:scale-102 transition-all"
                     >
-                      <span>{stepIdx + 1 < totalSteps ? 'Proceed to Next Crisis' : 'Unlock Final Restoration!'}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span>Try Another Answer</span>
                     </button>
-                  </div>
-                )}
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="clay-btn-emerald px-6 py-2.5 rounded-2xl text-white font-black text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer shadow-md hover:scale-102 transition-all"
+                  >
+                    <span>{stepIdx + 1 < totalSteps ? 'Proceed to Next Crisis' : 'Unlock Final Restoration!'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
 
