@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +9,7 @@ export async function POST(req: Request) {
     const { teamAName, teamBName, teamAScore, teamBScore, winner } = body;
 
     try {
+      const prisma = await getPrisma();
       const session = await prisma.gameSession.create({
         data: {
           teamAName: teamAName || 'The Explorers',
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     try {
+      const prisma = await getPrisma();
       const sessions = await prisma.gameSession.findMany({
         orderBy: { completedAt: 'desc' },
         take: 15,
