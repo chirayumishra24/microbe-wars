@@ -2,17 +2,23 @@
 
 import React, { useState } from 'react';
 import { useGame } from '@/context/GameContext';
-import { MicrobeScene } from '@/components/3d/MicrobeScene';
-import { Play, Sparkles, Shield, Compass, Sprout, Volume2, VolumeX, Maximize, Minimize, Zap } from 'lucide-react';
+import Image from 'next/image';
+import { Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 import { sounds } from '@/utils/audio';
+import { fireScorePop } from '@/utils/confetti';
+import { MicrobeCodexModal } from '@/components/common/MicrobeCodexModal';
+import { HallOfFameModal } from '@/components/common/HallOfFameModal';
 
 export const StartScreen: React.FC = () => {
   const { setStage, audioEnabled, toggleAudio } = useGame();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showCodex, setShowCodex] = useState(false);
+  const [showHallOfFame, setShowHallOfFame] = useState(false);
 
   const handleStart = () => {
     sounds.playCorrect();
     sounds.startBgm();
+    fireScorePop();
     setStage('team-selection');
   };
 
@@ -34,149 +40,150 @@ export const StartScreen: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-between items-center p-3 sm:p-5 select-none overflow-hidden">
+    <div className="relative w-full h-full flex items-center justify-center bg-slate-950 select-none overflow-hidden">
       
-      {/* Top Floating Utility Bar */}
-      <div className="w-full max-w-4xl flex items-center justify-between z-20">
-        <div className="clay-pill px-3 py-1 text-emerald-950 text-xs font-black flex items-center gap-1.5 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-          <span>Classroom Science Tournament</span>
-        </div>
+      {/* 16:9 Responsive Canvas - Perfectly Contained Inside Viewport with Zero Scrolling */}
+      <div className="relative w-full h-full max-w-[177.78vh] max-h-[56.25vw] aspect-[16/9] mx-auto overflow-hidden shadow-2xl">
+        
+        {/* Base Cinematic Painted Landscape Artwork */}
+        <Image
+          src="/images/hero-start.jpg"
+          alt="Microbe Wars - Small Organisms. Big Impact."
+          fill
+          priority
+          sizes="(max-width: 1920px) 100vw, 1920px"
+          className="object-contain pointer-events-none select-none"
+        />
 
-        <div className="flex items-center gap-2">
+        {/* Top Right Quick Controls Bar (Volume & Fullscreen) */}
+        <div className="absolute top-[3.5%] right-[3%] flex items-center gap-2 z-20">
           <button
             onClick={toggleAudio}
-            className="w-9 h-9 rounded-xl bg-white/90 hover:bg-white border-2 border-emerald-100 shadow-sm flex items-center justify-center text-slate-700 active:scale-95 transition-all"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/85 hover:bg-white text-slate-800 border-2 border-white/90 shadow-md backdrop-blur-md flex items-center justify-center active:scale-90 transition-all hover:ring-2 hover:ring-emerald-400"
             title={audioEnabled ? "Mute Audio" : "Unmute Audio"}
           >
-            {audioEnabled ? <Volume2 className="w-4 h-4 text-emerald-600" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+            {audioEnabled ? (
+              <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+            ) : (
+              <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+            )}
           </button>
+          
           <button
             onClick={toggleFullscreen}
-            className="w-9 h-9 rounded-xl bg-white/90 hover:bg-white border-2 border-emerald-100 shadow-sm flex items-center justify-center text-slate-700 active:scale-95 transition-all"
-            title="Toggle Fullscreen"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/85 hover:bg-white text-slate-800 border-2 border-white/90 shadow-md backdrop-blur-md flex items-center justify-center active:scale-90 transition-all hover:ring-2 hover:ring-emerald-400"
+            title="Toggle Smart Board Fullscreen"
           >
-            {isFullscreen ? <Minimize className="w-4 h-4 text-emerald-600" /> : <Maximize className="w-4 h-4 text-slate-600" />}
+            {isFullscreen ? (
+              <Minimize className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+            ) : (
+              <Maximize className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
+            )}
           </button>
         </div>
-      </div>
 
-      {/* Main Unified Center Game Card */}
-      <div className="my-auto z-20 w-full max-w-xl flex flex-col items-center">
-        
-        <div className="w-full bg-white/95 backdrop-blur-xl border-4 border-white shadow-2xl rounded-3xl p-5 sm:p-6 flex flex-col items-center text-center relative ring-4 ring-emerald-500/10">
-          
-          {/* Logo & Title */}
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <span className="text-3xl sm:text-4xl animate-bounce">🦠</span>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 font-heading leading-none drop-shadow-xs">
-              MICROBE WARS
-            </h1>
-          </div>
-          
-          <p className="text-sm sm:text-base font-extrabold text-emerald-900 font-heading mb-3.5">
-            Small Organisms. <span className="text-emerald-600 underline decoration-emerald-500/50 decoration-wavy">Big Impact.</span>
-          </p>
+        {/* 4 Interactive Feature Hotspots */}
+        {/* 1. Explore -> Microbe Codex */}
+        <button
+          onClick={() => {
+            sounds.playClick();
+            setShowCodex(true);
+          }}
+          className="absolute left-[34%] top-[49%] w-[7.2%] h-[12.5%] rounded-full cursor-pointer transition-all hover:scale-105 active:scale-95 group focus:outline-hidden"
+          title="Open Microbe Codex"
+        >
+          <span className="sr-only">Explore Microbe Codex</span>
+          <div className="w-full h-full rounded-full border-2 border-transparent group-hover:border-cyan-300 group-hover:ring-4 group-hover:ring-cyan-400/40 transition-all" />
+        </button>
 
-          {/* Teams Face-off Banner with Micro Live Previews */}
-          <div className="w-full grid grid-cols-11 items-center bg-slate-100/90 rounded-2xl p-2.5 sm:p-3 border border-slate-200/80 mb-3.5 shadow-inner">
-            
-            {/* Team A */}
-            <div className="col-span-5 flex items-center gap-2 text-left">
-              <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl overflow-hidden bg-slate-950 border-2 border-blue-400 shadow-md flex-shrink-0 relative">
-                <MicrobeScene type="bacteria" color="#34D399" className="w-full h-full" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs sm:text-sm font-black text-blue-950 font-heading truncate flex items-center gap-1">
-                  <Compass className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                  <span className="truncate">The Explorers</span>
-                </div>
-                <div className="text-[10px] font-bold text-blue-700 mt-0.5 flex items-center gap-1">
-                  <span>🌻 Sunflowers</span>
-                </div>
-              </div>
-            </div>
+        {/* 2. Learn -> How to Play */}
+        <button
+          onClick={() => {
+            sounds.playClick();
+            setStage('how-to-play');
+          }}
+          className="absolute left-[42.7%] top-[49%] w-[7.2%] h-[12.5%] rounded-full cursor-pointer transition-all hover:scale-105 active:scale-95 group focus:outline-hidden"
+          title="How to Play"
+        >
+          <span className="sr-only">Learn How to Play</span>
+          <div className="w-full h-full rounded-full border-2 border-transparent group-hover:border-blue-300 group-hover:ring-4 group-hover:ring-blue-400/40 transition-all" />
+        </button>
 
-            {/* VS Badge */}
-            <div className="col-span-1 flex items-center justify-center">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white font-black text-xs flex items-center justify-center shadow-md rotate-6 border border-white">
-                VS
-              </div>
-            </div>
+        {/* 3. Compete -> Hall of Fame Tournament Leaderboard */}
+        <button
+          onClick={() => {
+            sounds.playClick();
+            setShowHallOfFame(true);
+          }}
+          className="absolute left-[52.2%] top-[49%] w-[7.2%] h-[12.5%] rounded-full cursor-pointer transition-all hover:scale-105 active:scale-95 group focus:outline-hidden"
+          title="Tournament Records & Hall of Fame"
+        >
+          <span className="sr-only">Tournament Hall of Fame</span>
+          <div className="w-full h-full rounded-full border-2 border-transparent group-hover:border-amber-300 group-hover:ring-4 group-hover:ring-amber-400/40 transition-all" />
+        </button>
 
-            {/* Team B */}
-            <div className="col-span-5 flex items-center justify-end gap-2 text-right">
-              <div className="min-w-0">
-                <div className="text-xs sm:text-sm font-black text-orange-950 font-heading truncate flex items-center justify-end gap-1">
-                  <span className="truncate">The Guardians</span>
-                  <Shield className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" />
-                </div>
-                <div className="text-[10px] font-bold text-orange-700 mt-0.5 flex items-center justify-end gap-1">
-                  <span>🌽 Corn Stalks</span>
-                </div>
-              </div>
-              <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl overflow-hidden bg-slate-950 border-2 border-orange-400 shadow-md flex-shrink-0 relative">
-                <MicrobeScene type="amoeba" color="#F97316" className="w-full h-full" />
-              </div>
-            </div>
+        {/* 4. Protect -> Ecosystem Mission Stinger */}
+        <button
+          onClick={() => {
+            sounds.playCorrect();
+            fireScorePop();
+          }}
+          className="absolute left-[61.5%] top-[49%] w-[7.2%] h-[12.5%] rounded-full cursor-pointer transition-all hover:scale-105 active:scale-95 group focus:outline-hidden"
+          title="Protect the Living Ecosystem"
+        >
+          <span className="sr-only">Protect Ecosystem</span>
+          <div className="w-full h-full rounded-full border-2 border-transparent group-hover:border-emerald-300 group-hover:ring-4 group-hover:ring-emerald-400/40 transition-all" />
+        </button>
 
-          </div>
+        {/* Team A Mascot Touch Hotspot */}
+        <button
+          onClick={() => {
+            sounds.playCorrect();
+            fireScorePop();
+          }}
+          className="absolute left-[13.5%] top-[57.5%] w-[15.5%] h-[13.5%] rounded-2xl cursor-pointer transition-all hover:scale-102 active:scale-95 group focus:outline-hidden"
+          title="Team A: The Explorers (Sunflowers & Bacillus)"
+        >
+          <span className="sr-only">Team A The Explorers</span>
+          <div className="w-full h-full rounded-2xl border-2 border-transparent group-hover:border-blue-400 group-hover:ring-4 group-hover:ring-blue-300/40 transition-all" />
+        </button>
 
-          {/* Key Game Features Callouts */}
-          <div className="grid grid-cols-2 gap-2 w-full mb-4 text-left">
-            <div className="flex items-center gap-2 bg-amber-50/90 border border-amber-200/80 rounded-xl p-2 px-2.5 shadow-xs">
-              <div className="w-5 h-5 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-black flex-shrink-0">
-                <Zap className="w-3 h-3" />
-              </div>
-              <div className="text-[11px] leading-tight">
-                <span className="font-black text-amber-950">No Repeats: </span>
-                <span className="text-amber-900 font-medium">Questions appear once.</span>
-              </div>
-            </div>
+        {/* Team B Mascot Touch Hotspot */}
+        <button
+          onClick={() => {
+            sounds.playCorrect();
+            fireScorePop();
+          }}
+          className="absolute left-[72.5%] top-[57.5%] w-[15.5%] h-[13.5%] rounded-2xl cursor-pointer transition-all hover:scale-102 active:scale-95 group focus:outline-hidden"
+          title="Team B: The Guardians (Corn & Amoeba)"
+        >
+          <span className="sr-only">Team B The Guardians</span>
+          <div className="w-full h-full rounded-2xl border-2 border-transparent group-hover:border-orange-400 group-hover:ring-4 group-hover:ring-orange-300/40 transition-all" />
+        </button>
 
-            <div className="flex items-center gap-2 bg-emerald-50/90 border border-emerald-200/80 rounded-xl p-2 px-2.5 shadow-xs">
-              <div className="w-5 h-5 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black flex-shrink-0">
-                <Sprout className="w-3 h-3" />
-              </div>
-              <div className="text-[11px] leading-tight">
-                <span className="font-black text-emerald-950">3D Garden: </span>
-                <span className="text-emerald-900 font-medium">Answers grow live crops!</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Master Tactile Play Button */}
-          <button
-            onClick={handleStart}
-            className="w-full max-w-xs clay-btn-emerald py-3 px-6 text-lg sm:text-xl font-black flex items-center justify-center gap-2.5 font-heading tracking-wide shadow-xl active:scale-95 transition-all"
-          >
-            <Play className="w-5 h-5 fill-current" />
+        {/* Primary Interactive START GAME Button */}
+        <button
+          onClick={handleStart}
+          className="absolute left-[36.8%] top-[64%] w-[26.4%] h-[12%] rounded-full cursor-pointer flex items-center justify-center font-heading font-black text-white text-lg sm:text-2xl md:text-3xl tracking-wider transition-all duration-200 hover:scale-103 active:scale-96 ring-4 ring-white/40 shadow-2xl hover:ring-emerald-300 hover:shadow-emerald-500/50 group focus:outline-hidden animate-pulse"
+          style={{
+            background: 'linear-gradient(180deg, #34D399 0%, #059669 48%, #047857 100%)',
+            boxShadow: '0 8px 24px rgba(5, 150, 105, 0.45), inset 0 2px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.3)',
+            border: '2px solid rgba(255, 255, 255, 0.85)',
+          }}
+        >
+          <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] flex items-center gap-1.5 sm:gap-2">
             <span>START GAME</span>
-          </button>
-          
-          <div className="text-[10px] text-slate-500 font-bold mt-1.5">
-            Classroom Interactive Smart Board Edition
-          </div>
-
-        </div>
+            <span className="text-xl sm:text-2xl font-bold group-hover:translate-x-1 transition-transform">›</span>
+          </span>
+        </button>
 
       </div>
 
-      {/* Bottom Arenas Floating Pill */}
-      <div className="z-20 w-full flex justify-center pb-0.5">
-        <div className="clay-card py-1 px-3 flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] font-bold text-slate-800 shadow-sm border border-white/80">
-          <span className="text-[10px] text-emerald-800 font-black uppercase tracking-wider">5 Arenas:</span>
-          <span>🔬 Micro Lab</span>
-          <span>•</span>
-          <span>🌱 Food Chains</span>
-          <span>•</span>
-          <span>🍂 Decay</span>
-          <span>•</span>
-          <span>🕸️ Food Web</span>
-          <span>•</span>
-          <span>🥣 Food Factory</span>
-        </div>
-      </div>
+      {/* Microbe Codex Modal */}
+      <MicrobeCodexModal isOpen={showCodex} onClose={() => setShowCodex(false)} />
+
+      {/* Hall of Fame Tournament Modal */}
+      <HallOfFameModal isOpen={showHallOfFame} onClose={() => setShowHallOfFame(false)} />
 
     </div>
   );
