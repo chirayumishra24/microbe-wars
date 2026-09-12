@@ -37,7 +37,7 @@ export default function RootLayout({
           {/* Claymorphic Top Scoreboard at z-50 */}
           <TopScoreboard />
           {/* Main Stage at z-10 */}
-          <main className="w-full flex-1 relative z-10 overflow-hidden flex flex-col">
+          <main className="w-full flex-1 relative z-10 overflow-y-auto overflow-x-hidden flex flex-col scroll-smooth">
             {children}
           </main>
           {/* Turn Clash Announcement Overlay */}
